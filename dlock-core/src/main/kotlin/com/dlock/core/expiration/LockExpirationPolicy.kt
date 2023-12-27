@@ -1,6 +1,6 @@
 package com.dlock.core.expiration
 
-import java.time.LocalDateTime
+import com.dlock.core.model.ReadLockRecord
 
 /**
  * Lock expiration policy.
@@ -12,9 +12,8 @@ interface LockExpirationPolicy {
     /**
      * Returns true when the lock should expire.
      *
-     * @param createdTime created time of the existing lock
-     * @param expirationSeconds expiration seconds of the existing lock
+     * @param readLockRecord
      */
-    fun expired(createdTime: LocalDateTime, expirationSeconds: Long): Boolean
+    fun expired(readLockRecord: ReadLockRecord): Boolean
 
 }

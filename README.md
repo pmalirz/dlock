@@ -1,10 +1,9 @@
 <img src="https://github.com/pmalirz/dlock/blob/master/doc/images/dlock-logo.png">
 
 # dlock - distributed lock backed by your database
-[![CircleCI](https://circleci.com/gh/pmalirz/dlock.svg?style=svg)](https://circleci.com/gh/pmalirz/dlock)
+![Build](https://github.com/pmalirz/dlock/actions/workflows/gradle.yml/badge.svg)
 [![Known Vulnerabilities](https://snyk.io/test/github/pmalirz/dlock/badge.svg)](https://snyk.io/test/github/pmalirz/dlock)
 [![codecov](https://codecov.io/gh/pmalirz/dlock/branch/master/graph/badge.svg)](https://codecov.io/gh/pmalirz/dlock)
-[![Download](https://api.bintray.com/packages/pmalirz/malitools/dlock-api/images/download.svg)](https://bintray.com/pmalirz/malitools)
 
 ## Declarative
 You can enable distributed lock mechanism by adding the _@Lock_  annotation at the method level:

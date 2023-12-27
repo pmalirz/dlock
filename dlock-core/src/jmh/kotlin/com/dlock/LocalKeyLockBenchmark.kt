@@ -37,7 +37,7 @@ open class LocalKeyLockBenchmark {
     @OutputTimeUnit(TimeUnit.SECONDS)
     fun tryLockAlwaysCollision(executionPlan: ExecutionPlan) {
         val lockHandle = executionPlan.localKeyLock.tryLock("A", 10000)
-        assert(lockHandle.isEmpty)
+        assert(!lockHandle.isPresent)
     }
 
     @Benchmark

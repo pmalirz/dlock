@@ -1,7 +1,9 @@
 package com.dlock.core.expiration
 
+import com.dlock.core.model.ReadLockRecord
 import com.dlock.core.util.time.DateTimeProvider
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.time.LocalDateTime
 
@@ -12,19 +14,25 @@ import java.time.LocalDateTime
  */
 class LocalKeyLockExpirationPolicyTest extends Specification {
 
+    private static final NOW = LocalDateTime.parse("2019-01-01T12:00:00")
+
     private LocalLockExpirationPolicy expirationPolicy
 
     def setup() {
-        def dateTimeProvider = GroovyMock(DateTimeProvider.class) {
-            now() >> LocalDateTime.parse("2019-01-01T12:00:00")
-        }
-        expirationPolicy = new LocalLockExpirationPolicy(dateTimeProvider)
+        expirationPolicy = new LocalLockExpirationPolicy()
     }
 
-    def "Test expiration"(String createTimeString, Long expirationSeconds, boolean expired) {
-        expect:
+    @Unroll("Test lock expiration: #createTimeString, #expirationSeconds, #expired")
+    def "Test lock expiration"(String createTimeString, Long expirationSeconds, boolean expired) {
+        given:
         def createTime = LocalDateTime.parse(createTimeString)
-        expirationPolicy.expired(createTime, expirationSeconds) == expired
+        def givenLock = new ReadLockRecord("1", "1", createTime, expirationSeconds, NOW)
+
+        when:
+        def actualExpired = expirationPolicy.expired(givenLock)
+
+        then:
+        actualExpired == expired
 
         where:
         createTimeString      | expirationSeconds | expired

@@ -11,7 +11,7 @@ import com.dlock.core.util.time.DateTimeProvider
  * @author Przemyslaw Malirz
  */
 object SimpleLocalKeyLock: SimpleKeyLock(
-        LocalLockRepository(),
+        LocalLockRepository(DateTimeProvider),
         LockHandleUUIDIdGenerator(),
-        LocalLockExpirationPolicy(DateTimeProvider),
+        LocalLockExpirationPolicy(),
         DateTimeProvider)

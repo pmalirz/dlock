@@ -14,8 +14,6 @@ import javax.sql.DataSource
 
 /**
  * Builder for {@link SimpleKeyLock} backed by the JDBC repository (database).
- *
- * @author Przemyslaw Malirz
  */
 class JDBCKeyLockBuilder {
 
@@ -27,7 +25,7 @@ class JDBCKeyLockBuilder {
     private lateinit var databaseType: DatabaseType
     private var lockTableName: String = DEFAULT_LOCK_TABLE_NAME
     private var lockHandleIdGenerator: LockHandleIdGenerator = LockHandleUUIDIdGenerator()
-    private var lockExpirationPolicy: LockExpirationPolicy = LocalLockExpirationPolicy(DateTimeProvider)
+    private var lockExpirationPolicy: LockExpirationPolicy = LocalLockExpirationPolicy()
     private var lockDateTimeProvider: DateTimeProvider = DateTimeProvider
     private var createDatabase = false
 

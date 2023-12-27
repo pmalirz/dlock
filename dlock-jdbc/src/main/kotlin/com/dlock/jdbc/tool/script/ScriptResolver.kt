@@ -16,7 +16,7 @@ class ScriptResolver(private val databaseType: DatabaseType, private val tableNa
     private val sqlResource = Properties()
 
     init {
-        val rawContent = InputStreamReader(this.javaClass.classLoader.getResourceAsStream("db/$databaseType-sql.properties"))
+        val rawContent = InputStreamReader(this.javaClass.classLoader.getResourceAsStream("db/$databaseType-sql.properties")!!)
                 .readText()
         val fileContent = rawContent.replace(tableNamePlaceholder, tableName)
         sqlResource.load(StringReader(fileContent))
@@ -27,7 +27,7 @@ class ScriptResolver(private val databaseType: DatabaseType, private val tableNa
     }
 
     fun resolveDDLScripts(): List<String> {
-        val initScriptTemplate = this::class.java.getResource("/db/$databaseType-create.sql").readText()
+        val initScriptTemplate = this::class.java.getResource("/db/$databaseType-create.sql")!!.readText()
         val entireScriptContent = initScriptTemplate.replace(tableNamePlaceholder, tableName)
         return entireScriptContent.split(";")
     }

@@ -1,15 +1,15 @@
 version: 2.1
 orbs:
-  codecov: codecov/codecov@1.0.5
+  codecov: codecov/codecov@3.3.0
 jobs:
   build:
     working_directory: ~/dlock
     docker:
-      - image: circleci/openjdk:8-jdk-browsers
+      - image: cimg/openjdk:8.0
     steps:
       - checkout
       - run: chmod +x ./gradlew
-      - run: ./gradlew clean build codeCoverageReport
+      - run: ./gradlew clean build test testCodeCoverageReport
       - codecov/upload:
           file: /**/test.exec
 

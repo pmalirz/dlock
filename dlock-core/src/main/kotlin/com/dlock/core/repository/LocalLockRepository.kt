@@ -1,7 +1,8 @@
 package com.dlock.core.repository
 
-import com.dlock.core.model.LockRecord
-import java.util.*
+import com.dlock.core.model.WriteLockRecord
+import com.dlock.core.model.ReadLockRecord
+import com.dlock.core.util.time.DateTimeProvider
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -10,24 +11,28 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * @author Przemyslaw Malirz
  */
-class LocalLockRepository : LockRepository {
+class LocalLockRepository(
+        private val dateTimeProvider: DateTimeProvider
+) : LockRepository {
 
-    private val NAMED_LOCK = ConcurrentHashMap.newKeySet<LockRecord>()
+    private val NAMED_LOCK = ConcurrentHashMap.newKeySet<WriteLockRecord>()
 
-    override fun createLock(lockRecord: LockRecord): Boolean {
+    override fun createLock(lockRecord: WriteLockRecord): Boolean {
         return NAMED_LOCK.add(lockRecord)
     }
 
-    override fun findLockByHandleId(lockHandleId: String): Optional<LockRecord> {
-        return Optional.ofNullable(NAMED_LOCK.find { k -> k.lockHandleId == lockHandleId })
-    }
+    override fun findLockByHandleId(lockHandleId: String) = findBy { lock -> lock.lockHandleId == lockHandleId }
 
-    override fun findLockByKey(lockKey: String): Optional<LockRecord> {
-        return Optional.ofNullable(NAMED_LOCK.find { k -> k.lockKey == lockKey })
-    }
+    override fun findLockByKey(lockKey: String) = findBy { lock -> lock.lockKey == lockKey }
+
 
     override fun removeLock(lockHandleId: String) {
-        NAMED_LOCK.removeIf { k -> k.lockHandleId == lockHandleId }
+        NAMED_LOCK.removeIf { lock -> lock.lockHandleId == lockHandleId }
     }
+
+    private fun findBy(predicate: (WriteLockRecord) -> Boolean) =
+            NAMED_LOCK.find(predicate)?.let {
+                ReadLockRecord.of(it, dateTimeProvider.now())
+            }
 
 }

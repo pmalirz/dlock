@@ -14,8 +14,6 @@ import java.time.LocalDateTime
 /**
  * Tests of {@link LocalKeyLock}.
  * One can use LocalLockRepository to implement in-memory, single node version of KeyLock.
- *
- * @author Przemyslaw Malirz
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class LocalKeyLockTest {
@@ -43,10 +41,10 @@ internal class LocalKeyLockTest {
 
 
         localKeyLock = SimpleKeyLock(
-                LocalLockRepository(),
-                LockHandleUUIDIdGenerator(),
-                LocalLockExpirationPolicy(dateTimeProvider),
-                dateTimeProvider
+            LocalLockRepository(dateTimeProvider),
+            LockHandleUUIDIdGenerator(),
+            LocalLockExpirationPolicy(),
+            dateTimeProvider
         )
     }
 

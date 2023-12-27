@@ -56,7 +56,7 @@ class JDBCSimpleKeyLockTest extends Specification {
         assert lockHandle.present
 
         def createdLock = repository.findLockByKey("a")
-        assert createdLock.get().lockHandleId == lockHandle.get().handleId
+        assert createdLock.lockHandleId == lockHandle.get().handleId
     }
 
     def "Release Lock"() {
@@ -68,7 +68,7 @@ class JDBCSimpleKeyLockTest extends Specification {
         noExceptionThrown()
 
         def createdLock = repository.findLockByKey("b")
-        assert !createdLock.present
+        assert createdLock == null
     }
 
     def "Release not existing Lock"() {

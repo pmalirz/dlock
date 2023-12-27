@@ -4,7 +4,8 @@ import com.dlock.api.KeyLock
 import com.dlock.api.LockHandle
 import com.dlock.core.expiration.LockExpirationPolicy
 import com.dlock.core.handle.LockHandleIdGenerator
-import com.dlock.core.model.LockRecord
+import com.dlock.core.model.ReadLockRecord
+import com.dlock.core.model.WriteLockRecord
 import com.dlock.core.repository.LockRepository
 import com.dlock.core.util.time.DateTimeProvider
 import java.util.*
@@ -28,8 +29,9 @@ open class SimpleKeyLock(
 
     override fun tryLock(lockKey: String, expirationSeconds: Long): Optional<LockHandle> {
         val currentLockRecord = lockRepository.findLockByKey(lockKey)
-        return if (expired(currentLockRecord)) {
-            breakLockIfExists(currentLockRecord)
+
+        return if (expiredOrNotExists(currentLockRecord)) {
+            currentLockRecord?.breakLock()
             return createNewLock(lockKey, expirationSeconds)
         } else {
             Optional.empty()
@@ -37,8 +39,7 @@ open class SimpleKeyLock(
     }
 
     override fun unlock(lockHandle: LockHandle) {
-        val lockRecord = lockRepository.findLockByHandleId(lockHandle.handleId)
-        breakLockIfExists(lockRecord)
+        lockRepository.findLockByHandleId(lockHandle.handleId)?.breakLock()
     }
 
     private fun createNewLock(lockKey: String, expirationSeconds: Long): Optional<LockHandle> {
@@ -51,21 +52,21 @@ open class SimpleKeyLock(
         }
     }
 
-    private fun createLockRecord(lockKey: String, expirationSeconds: Long): LockRecord {
+    private fun createLockRecord(lockKey: String, expirationSeconds: Long): WriteLockRecord {
         val lockHandleId = lockHandleIdGenerator.generate()
-        return LockRecord(lockKey, lockHandleId, dateTimeProvider.now(), expirationSeconds)
+        return WriteLockRecord(lockKey, lockHandleId, dateTimeProvider.now(), expirationSeconds)
     }
 
-    private fun expired(currentLockRecord: Optional<LockRecord>): Boolean {
-        return currentLockRecord.isPresent.not() ||
-                lockExpirationPolicy.expired(currentLockRecord.get().createdTime,
-                        currentLockRecord.get().expirationSeconds)
+    private fun expiredOrNotExists(currentLock: ReadLockRecord?): Boolean {
+        return currentLock == null || currentLock.expired()
     }
 
-    private fun breakLockIfExists(lockRecord: Optional<LockRecord>) {
-        if (lockRecord.isPresent) {
-            lockRepository.removeLock(lockRecord.get().lockHandleId)
-        }
+    private fun ReadLockRecord.expired(): Boolean {
+        return lockExpirationPolicy.expired(this)
+    }
+
+    private fun ReadLockRecord.breakLock() {
+        lockRepository.removeLock(this.lockHandleId)
     }
 
 }

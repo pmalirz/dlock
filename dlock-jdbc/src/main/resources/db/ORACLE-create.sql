@@ -3,4 +3,5 @@ CREATE TABLE "@@tableName@@" (
   "LCK_HNDL_ID" VARCHAR2(100) not null,
   "CREATED_TIME" TIMESTAMP not null,
   "EXPIRE_SEC" INTEGER not null
-)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "@@tableName@@_HNDL_UX" ON  "@@tableName@@" ("LCK_HNDL_ID");

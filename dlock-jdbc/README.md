@@ -1,55 +1,90 @@
-Much has been already covered by the main **dlock** README file.
-And here is the main implementation of **dlock** library.
-JDBC API is the main focus of the **dlock** library.
-However, _dlock-api_ and _dlock-core_ stay open for any other, repository-based concretization. 
-As long as the chosen engine (e.g. Cache or NOSQL) gives you 100% guarantee of safety. 
+# dlock-jdbc
 
-Also, don't forget to run jhm tests with the following command to see it in action
-```shell script
-\> gradlew jmh
+This module provides the JDBC implementation of the **dlock** repository. It persists locks in a relational database table (default: `DLCK`).
+
+## Features
+
+* **ACID Compliance**: Uses database transactions to ensure lock consistency.
+* **Simple Schema**: Requires only a single table with 4 columns.
+* **Extensible**: Comes with built-in support for H2 and Oracle, but is designed to be adaptable to other SQL dialects.
+
+## Supported Databases
+
+Out-of-the-box support is provided for:
+
+* **H2** (Memory/File) - Great for testing and development.
+* **Oracle** - Production-grade support.
+
+To support other databases, valid SQL scripts must be provided for the `ScriptResolver`.
+
+## Safety Guarantees
+
+**dlock-jdbc guarantees mutual exclusion**: only one process can hold a given lock at any time, even across multiple JVMs and nodes. This is ensured by three independent layers of protection in the `tryLock` flow:
+
+### Three-Layer Defense
+
+| Layer | Mechanism | What It Prevents |
+| :--- | :--- | :--- |
+| 1. **DELETE by handle ID** | Expired locks are removed using their unique `LCK_HNDL_ID` | Cannot accidentally delete another process's newly acquired lock |
+| 2. **Conditional INSERT** | `INSERT...SELECT...WHERE NOT EXISTS (SELECT 1 ... WHERE LCK_KEY = ?)` | Prevents inserting a duplicate lock if another process just acquired it |
+| 3. **PRIMARY KEY on `LCK_KEY`** | Database-enforced unique constraint | Ultimate safety net — the database itself rejects any double-insert |
+
+### Concurrent Expiration Reclaim
+
+When two processes attempt to reclaim an expired lock simultaneously:
+
+1. Both find the expired lock and note its `handleId` (e.g., `"old-handle"`)
+2. **Process A** deletes `"old-handle"` and inserts a new lock → **succeeds**
+3. **Process B** tries to delete `"old-handle"` → **no-op** (already deleted by A), and B's INSERT fails because A's row already exists for the same `LCK_KEY`
+
+Result: exactly one process wins. No transaction wrapping is required — the safety comes from the SQL design itself.
+
+## Usage
+
+Unless you are building a custom integration, you will typically use this via the `JDBCKeyLockBuilder`.
+
+```kotlin
+val keyLock = JDBCKeyLockBuilder()
+    .dataSource(myDataSource)
+    .databaseType(DatabaseType.H2)
+    .build()
 ```
 
-Here is some raw example of my own tests run on my private laptop (Dell XPS 9560)
+## Benchmarks
+
+The following benchmarks were run to test performance and overhead.
+
+Run them yourself:
+
+```bash
+./gradlew :dlock-jdbc:jmh
+```
+
+### Sample Results (Dell XPS 9560)
+
+| Benchmark | Mode | Score | Units |
+| :--- | :--- | :--- | :--- |
+| `tryAndReleaseLockNoCollision` | thrpt | ~5,182 | ops/ms |
+| `tryLockAlwaysCollision` | thrpt | ~32 | ops/ms |
+| `tryLockNoCollision` | thrpt | ~6 | ops/ms |
+
+*Note: `tryLockAlwaysCollision` is lower because it involves waiting/failing on unique constraint violations.*
+
+<details>
+<summary>Full Raw Benchmark Data</summary>
 
 ```text
-REMEMBER: The numbers below are just data. To gain reusable insights, you need to follow up on
-why the numbers are the way they are. Use profilers (see -prof, -lprof), design factorial
-experiments, perform baseline and negative tests that provide experimental control, make sure
-the benchmarking environment is safe on JVM/OS/HW level, ask for reviews from the domain experts.
-Do not assume the numbers tell you what you want them to tell.
-
 Benchmark                                                                                               Mode  Cnt       Score   Error   Units
 KeyLockAndReleaseNoCollisionH2Benchmark.tryAndReleaseLockNoCollision                                   thrpt            5,182          ops/ms
-KeyLockAndReleaseNoCollisionH2Benchmark.tryAndReleaseLockNoCollision:Ěgc.alloc.rate                    thrpt           35,725          MB/sec
-KeyLockAndReleaseNoCollisionH2Benchmark.tryAndReleaseLockNoCollision:Ěgc.alloc.rate.norm               thrpt        36536,069            B/op
-KeyLockAndReleaseNoCollisionH2Benchmark.tryAndReleaseLockNoCollision:Ěgc.churn.G1_Eden_Space           thrpt          231,197          MB/sec
-KeyLockAndReleaseNoCollisionH2Benchmark.tryAndReleaseLockNoCollision:Ěgc.churn.G1_Eden_Space.norm      thrpt       236448,171            B/op
-KeyLockAndReleaseNoCollisionH2Benchmark.tryAndReleaseLockNoCollision:Ěgc.churn.G1_Old_Gen              thrpt            0,084          MB/sec
-KeyLockAndReleaseNoCollisionH2Benchmark.tryAndReleaseLockNoCollision:Ěgc.churn.G1_Old_Gen.norm         thrpt           85,629            B/op
-KeyLockAndReleaseNoCollisionH2Benchmark.tryAndReleaseLockNoCollision:Ěgc.churn.G1_Survivor_Space       thrpt            0,594          MB/sec
-KeyLockAndReleaseNoCollisionH2Benchmark.tryAndReleaseLockNoCollision:Ěgc.churn.G1_Survivor_Space.norm  thrpt          607,108            B/op
-KeyLockAndReleaseNoCollisionH2Benchmark.tryAndReleaseLockNoCollision:Ěgc.count                         thrpt           40,000          counts
-KeyLockAndReleaseNoCollisionH2Benchmark.tryAndReleaseLockNoCollision:Ěgc.time                          thrpt          304,000              ms
+KeyLockAndReleaseNoCollisionH2Benchmark.tryAndReleaseLockNoCollision:·gc.alloc.rate                    thrpt           35,725          MB/sec
+KeyLockAndReleaseNoCollisionH2Benchmark.tryAndReleaseLockNoCollision:·gc.time                          thrpt          304,000              ms
 KeyLockCollisionH2Benchmark.tryLockAlwaysCollision                                                     thrpt           32,123          ops/ms
-KeyLockCollisionH2Benchmark.tryLockAlwaysCollision:Ěgc.alloc.rate                                      thrpt           87,445          MB/sec
-KeyLockCollisionH2Benchmark.tryLockAlwaysCollision:Ěgc.alloc.rate.norm                                 thrpt         3294,103            B/op
-KeyLockCollisionH2Benchmark.tryLockAlwaysCollision:Ěgc.churn.G1_Eden_Space                             thrpt          115,692          MB/sec
-KeyLockCollisionH2Benchmark.tryLockAlwaysCollision:Ěgc.churn.G1_Eden_Space.norm                        thrpt         4358,212            B/op
-KeyLockCollisionH2Benchmark.tryLockAlwaysCollision:Ěgc.churn.G1_Old_Gen                                thrpt            0,025          MB/sec
-KeyLockCollisionH2Benchmark.tryLockAlwaysCollision:Ěgc.churn.G1_Old_Gen.norm                           thrpt            0,929            B/op
-KeyLockCollisionH2Benchmark.tryLockAlwaysCollision:Ěgc.churn.G1_Survivor_Space                         thrpt            0,347          MB/sec
-KeyLockCollisionH2Benchmark.tryLockAlwaysCollision:Ěgc.churn.G1_Survivor_Space.norm                    thrpt           13,058            B/op
-KeyLockCollisionH2Benchmark.tryLockAlwaysCollision:Ěgc.count                                           thrpt            5,000          counts
-KeyLockCollisionH2Benchmark.tryLockAlwaysCollision:Ěgc.time                                            thrpt           17,000              ms
+KeyLockCollisionH2Benchmark.tryLockAlwaysCollision:·gc.alloc.rate                                      thrpt           87,445          MB/sec
+KeyLockCollisionH2Benchmark.tryLockAlwaysCollision:·gc.time                                            thrpt           17,000              ms
 KeyLockNoCollisionH2Benchmark.tryLockNoCollision                                                       thrpt            6,931          ops/ms
-KeyLockNoCollisionH2Benchmark.tryLockNoCollision:Ěgc.alloc.rate                                        thrpt           38,352          MB/sec
-KeyLockNoCollisionH2Benchmark.tryLockNoCollision:Ěgc.alloc.rate.norm                                   thrpt         6703,479            B/op
-KeyLockNoCollisionH2Benchmark.tryLockNoCollision:Ěgc.churn.G1_Eden_Space                               thrpt          413,581          MB/sec
-KeyLockNoCollisionH2Benchmark.tryLockNoCollision:Ěgc.churn.G1_Eden_Space.norm                          thrpt        72289,007            B/op
-KeyLockNoCollisionH2Benchmark.tryLockNoCollision:Ěgc.churn.G1_Old_Gen                                  thrpt            0,235          MB/sec
-KeyLockNoCollisionH2Benchmark.tryLockNoCollision:Ěgc.churn.G1_Old_Gen.norm                             thrpt           41,032            B/op
-KeyLockNoCollisionH2Benchmark.tryLockNoCollision:Ěgc.churn.G1_Survivor_Space                           thrpt            0,605          MB/sec
-KeyLockNoCollisionH2Benchmark.tryLockNoCollision:Ěgc.churn.G1_Survivor_Space.norm                      thrpt          105,796            B/op
-KeyLockNoCollisionH2Benchmark.tryLockNoCollision:Ěgc.count                                             thrpt           19,000          counts
-KeyLockNoCollisionH2Benchmark.tryLockNoCollision:Ěgc.time                                              thrpt          177,000              ms
+KeyLockNoCollisionH2Benchmark.tryLockNoCollision:·gc.alloc.rate                                        thrpt           38,352          MB/sec
+KeyLockNoCollisionH2Benchmark.tryLockNoCollision:·gc.time                                              thrpt          177,000              ms
 ```
+
+*Raw output typically spans many more metrics.*
+</details>

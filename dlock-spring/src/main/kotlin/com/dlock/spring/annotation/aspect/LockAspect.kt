@@ -22,7 +22,7 @@ class LockAspect @Autowired constructor(private val keyLockProvider: ClosableKey
 
     @Around("@annotation(com.dlock.spring.annotation.Lock)")
     @Throws(Throwable::class, IllegalStateException::class)
-    fun logExecutionTime(joinPoint: ProceedingJoinPoint) {
+    fun aroundLockedMethod(joinPoint: ProceedingJoinPoint) {
 
         val targetMethod = LockAspectsUtil.getMethod(joinPoint)
                 ?: throw IllegalStateException("Couldn't find a method annotated with the @Lock annotation on the pointcut $joinPoint")

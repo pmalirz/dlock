@@ -1,1 +1,65 @@
-# dlock spring
+# dlock-spring
+
+This module provides Spring Framework integration for **dlock** via the `@Lock` annotation.
+
+## Features
+
+* **Declarative Locking**: Annotate methods with `@Lock` to create a distributed lock around their execution.
+* **Parameter Binding**: Use `@LockKeyParam` to dynamically construct lock keys from method arguments.
+* **Skip-if-Locked**: If the lock is already held by another process, the method execution is skipped entirely.
+
+## Configuration
+
+To use `@Lock`, you must configure:
+
+1. A `KeyLock` bean (the lock implementation).
+2. A `ClosableKeyLockProvider` bean.
+3. Enable component scanning for `com.dlock` (so the Aspect is detected).
+
+```java
+@Configuration
+@ComponentScan("com.dlock")
+public class DLockConfig {
+
+    @Bean
+    public KeyLock keyLock(DataSource dataSource) {
+        return new JDBCKeyLockBuilder()
+                .dataSource(dataSource)
+                .databaseType(DatabaseType.H2)
+                .build();
+    }
+
+    @Bean
+    public ClosableKeyLockProvider closableKeyLockProvider(KeyLock keyLock) {
+        return new ClosableKeyLockProvider(keyLock);
+    }
+}
+```
+
+## Usage
+
+### Basic Usage
+
+```java
+@Lock(key = "daily-report", expirationSeconds = 300)
+public void generateDailyReport() {
+    // This runs only if "daily-report" lock is acquired.
+}
+```
+
+### Dynamic Keys
+
+Use `@LockKeyParam` to include method arguments in the lock key.
+
+```java
+@Lock(key = "user-update-{userId}", expirationSeconds = 60)
+public void updateUser(@LockKeyParam("userId") String userId, UserData data) {
+    // Lock key will be e.g., "user-update-12345"
+}
+```
+
+## Important Notes
+
+1. **Return Values**: The current implementation swallows return values. Use `@Lock` only on `void` methods.
+2. **Skipping**: If the lock is not acquired, the method body is **not executed**. No exception is thrown.
+3. **Self-Invocation**: Due to Spring AOP proxy mechanism, calling an `@Lock` method from within the same class will bypass the aspect (and the lock).

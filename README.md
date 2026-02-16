@@ -1,224 +1,233 @@
-<img src="https://github.com/pmalirz/dlock/blob/master/doc/images/dlock-logo.png">
+<img src="https://github.com/pmalirz/dlock/blob/master/doc/images/dlock-logo.png" width="300">
 
-# dlock - distributed lock backed by your database
-![Build](https://github.com/pmalirz/dlock/actions/workflows/gradle.yml/badge.svg)
+# dlock - Distributed Lock Backed by Your Database
+
+[![Build](https://github.com/pmalirz/dlock/actions/workflows/gradle.yml/badge.svg)](https://github.com/pmalirz/dlock/actions/workflows/gradle.yml)
 [![Known Vulnerabilities](https://snyk.io/test/github/pmalirz/dlock/badge.svg)](https://snyk.io/test/github/pmalirz/dlock)
 [![codecov](https://codecov.io/gh/pmalirz/dlock/branch/master/graph/badge.svg)](https://codecov.io/gh/pmalirz/dlock)
 
-## Declarative
-You can enable distributed lock mechanism by adding the _@Lock_  annotation at the method level:
+**dlock** is a simple and reliable distributed locking solution for Java/Kotlin applications, using your existing database (JDBC) as the synchronization mechanism.
+
+Why limit yourself to complex infrastructure like Redis or Zookeeper when your relational database can handle distributed locking with ACID guarantees?
+
+## Key Features
+
+* **Simplicity**: No extra infrastructure required. Uses standard JDBC.
+* **Reliability**: Relies on database ACID transactions for strong consistency.
+* **Declarative**: Use `@Lock` annotation with Spring.
+* **Flexible**: Supports manual locking via `KeyLock` API.
+* **Thread-safe**: A single `KeyLock` instance can be shared across multiple threads.
+
+## Quick Start (Spring)
+
+The most common way to use **dlock** is with Spring Framework support.
+
+### 1. Add Dependencies
+
+Add the following to your `build.gradle`:
+
+```kotlin
+implementation("com.dlock:dlock-spring:3.0.0-SNAPSHOT")
+implementation("com.dlock:dlock-jdbc:3.0.0-SNAPSHOT")
+```
+
+Or `pom.xml`:
+
+```xml
+<dependency>
+    <groupId>com.dlock</groupId>
+    <artifactId>dlock-spring</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
+</dependency>
+<dependency>
+    <groupId>com.dlock</groupId>
+    <artifactId>dlock-jdbc</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
+</dependency>
+```
+
+### 2. Configure Beans
+
+Enable the aspect and configure the required beans: `KeyLock` and `ClosableKeyLockProvider`.
+
 ```java
-@Lock(key = "/invoice/pay/{invoiceId}", expirationSeconds = 900L)
-public void payInvoice(@LockKeyParam("invoiceId") final Long invoiceId) {
-    // do processing...
+@Configuration
+@ComponentScan("com.dlock") // Scan for LockAspect
+public class DLockConfig {
+
+    @Bean
+    public KeyLock keyLock(DataSource dataSource) {
+        return new JDBCKeyLockBuilder()
+                .dataSource(dataSource)
+                .databaseType(DatabaseType.H2) // or ORACLE
+                .createDatabase(true) // Automatically creates the DLCK table
+                .build();
+    }
+
+    @Bean
+    public ClosableKeyLockProvider closableKeyLockProvider(KeyLock keyLock) {
+        return new ClosableKeyLockProvider(keyLock);
+    }
 }
 ```
-The **dlock-spring** module enables this feature.
 
-## Using dlock API
-Declarative style depicted above is  the way to go for guarding the critical parts of your application, usually enclosed in methods.
-Nevertheless nothing can stop you from using pure dlock API, applying the lock to any given fragment of your code.
+### 3. Use @Lock Annotation
 
-Get a distributed lock using **autocloseable API**
+Annotate your methods with `@Lock`.
+
+**Important**:
+
+* If the lock cannot be acquired (e.g., held by another node), the method execution is **skipped**.
+* This pattern is best suited for scheduled tasks or void methods where "skip if running" is the desired behavior.
+* The annotation currently does not support returning values (swallows return values).
+
 ```java
-final ClosableKeyLockProvider keyLockProvider = new ClosableKeyLockProvider(keyLock);
-keyLockProvider.withLock("/invoice/pay/4587", 900, lockHandle -> {
-    // do processing...
+@Service
+public class InvoiceService {
+
+    @Lock(key = "invoice-processing-{invoiceId}", expirationSeconds = 60)
+    public void processInvoice(@LockKeyParam("invoiceId") Long invoiceId) {
+        // Critical section: only one instance processes this invoice at a time.
+        // If locked, this logic is skipped entirely.
+        
+        // ...
+    }
+}
+```
+
+## Programmatic Usage (Java/Kotlin)
+
+You can also use the API directly without Spring.
+
+### Using `KeyLock` Interface
+
+```java
+// 1. Initialize KeyLock (singleton)
+KeyLock keyLock = new JDBCKeyLockBuilder()
+        .dataSource(dataSource)
+        .databaseType(DatabaseType.H2)
+        .build();
+
+// 2. Try to acquire a lock
+Optional<LockHandle> lockHandle = keyLock.tryLock("my-resource-lock", 300); // 300 seconds expiration
+
+if (lockHandle.isPresent()) {
+    try {
+        // Critical section
+        performTask();
+    } finally {
+        // Always release the lock!
+        keyLock.unlock(lockHandle.get());
+    }
+} else {
+    // Lock is currently held by someone else
+    log.info("Could not acquire lock, skipping task.");
+}
+```
+
+### Using Closable Provider (Table-Flip safe)
+
+```java
+ClosableKeyLockProvider provider = new ClosableKeyLockProvider(keyLock);
+
+provider.withLock("my-resource-lock", 300, handle -> {
+    // This block is executed only if lock is acquired.
+    // Lock is automatically released after this block.
+    performTask();
 });
 ```
-or in a standard way
-```java
-final Optional<LockHandle> lockHandle = keyLock.tryLock("/invoice/pay/4587", 900);
-if(lockHandle.isPresent()) {
-    try {
-        // perform some business logic
-    } finally {
-        handle.get().unlock();
-    }
-}
-```
 
-Of course, before we use a _KeyLock_ instance, we have to initialized. 
-Create the _KeyLock_ global instance (one _KeyLock_ instance can be shared across multiple threads)
-```kotlin
-val config = HikariConfig()
+## How It Works (JDBC)
 
-config.jdbcUrl = "jdbc:oracle:thin:@localhost:1521:XE"
-config.username = "myshop"
-config.password = "*****"
-config.isAutoCommit = true
-config.addDataSourceProperty("maximumPoolSize", "1000")
-val dataSource = HikariDataSource(config)
+**dlock** uses a dedicated table (default `DLCK`) to store active locks.
 
-val keyLock = JDBCKeyLockBuilder().dataSource(dataSource)
-        .databaseType(DatabaseType.ORACLE)
-        .createDatabase(false).build()
+* **Acquire (`tryLock`)**: Attempts to `INSERT` a record with the lock key. If the key exists (unique constraint), the insert fails, meaning the lock is already held.
+* **Release (`unlock`)**: Performs a `DELETE` on the record using the lock handle ID.
+* **Expiration**: Locks have an expiration time. If a lock is not released (e.g., process crash), it can be reclaimed after expiration.
 
-val keyLockProvider = ClosableKeyLockProvider(keyLock)
-```
-The _KeyLock_ instance works on a separate database connection / transaction. 
-
-## How the JDBC implementation works
-
-### The short story of _tryLock_ and _ulnock_
-
-The **_tryLock()_** method performs the following _INSERT_ query on the _DLCK_ table.
-```java
-final Optional<LockHandle> lockHandle = keyLock.tryLock("/invoice/pay/4587", 900);
-```
-```sql
-INSERT INTO DLCK (LCK_KEY, LCK_HNDL_ID, CREATED_TIME, EXPIRE_SEC) 
-SELECT '/invoice/pay/4587', 'da74f856-27d0-11ea-978f-2e728ce88125', '2019-12-31T06:40:12.623', '900' FROM DUAL 
-WHERE NOT EXISTS (SELECT 1 FROM DLCK WHERE LCK_KEY = '/invoice/pay/4587')
-```
-
-The **_unlock()_** method performs the following _DELETE_ query on the _DLCK_ table.
-```java
-keyLock.unlock(lockHandle.get())
-```
+Example `DLCK` Table Schema (H2):
 
 ```sql
-DELETE FROM DLCK WHERE LCK_HNDL_ID = 'da74f856-27d0-11ea-978f-2e728ce88125'
-```
-
-The handle identifier (LCK_HNDL_ID) _'da74f856-27d0-11ea-978f-2e728ce88125'_ 
-is known only to the lock's owner and is generated by the
-implementation of the _LockHandleIdGenerator_ interface (_LockHandleUUIDIdGenerator_ by default).
-
-The **dlock** idea relies on the fact that the _DLCK_ table cannot have more than one record with 
-a given LCK_KEY (the name of your lock).
-
-## What is dlock
-
-**dlock** aims to be a deadly simple and reliable solution for distributed locking problem. 
-Safety and simplicity is the top priority of dlock.
-
-**dlock** is a repository-based lock, meaning the locks are backed by a centrally placed database.
-
-Central database is what majority of standard business project has in place. 
-Why not to use it as a lock synchronization engine (distributed lock manager) too? 
-**dlock** way is simple and sufficient approach in many cases.
-
-The project is composed of 3 modules
-* **dlock-api**
-base interfaces for dlock implementations. It gives a good outline of dlock capabilities.
-Contains the key interface _KeyLock_, which is a humble API for working with locks.
-* **dlock-core**
-base, abstract classes, common for all the specialized implementations (e.g. JDBC) such as: 
-expiration policies, lock model, repository interfaces
-* **dlock-jdbc**
-JDBC implementation of **dlock** backed by your central database.
-Can be adapted to any SQL-standard database.
-Also, has a few unit and jmh tests to test performance, thread-safety and consistency.
-* **dlock-spring**
-Support for spring framework. @Lock annotation allows to declare a distributed lock at the method level. 
-
-All **dlock** implementations must be thread-safe.
-That being said, a KeyLock instance can be shared by many threads.
-
-What's _KeyLock_? _KeyLock_ is the main interface for dlock library.
-You get and release your named (named by key) locks.  
-
-The usage of JDBC implementation of the _KeyLock_ interface (_SimpleKeyLock_ class with the instance of _JDBCLockRepository_ injected as the repository property)  
-should not take part in the long running business transaction, demarcated by a business method.
-_KeyLock_ must work inside its own transaction, flushing and committing internal SQL instructions
-immediately once _tryLock()_ or _unlock()_ is called.   
-
-## Yet another usage example
-
-One of the good use cases for **dlock** is synchronizing schedules which run concurrently on all your nodes.
-_Quartz_ does that synchronization in a very similar way, thru the central database structures.
-We can still run our schedules without _Quartz_, synchronizing them with **dlock**  
-
-Here is the sample code for the static schedule:
-
-```java
-// Somewhere in the initialization part / config code (e.g. singleton bean)
-KeyLock keyLock = JDBCKeyLockBuilder().dataSource(dataSource).databaseType(DatabaseType.H2).build();
-
-// Somewhere in the class
-@Schedule("* */15 * * * *")
-void generateInvoice() {
-    // Request a named ("create-invoice") lock which may last no longer that 300 seconds.
-    // After 300 seconds "create-invoice" lock expires (can be taken by an another thread / process)
-    final Optional<LockHandle> handle = keyLock.tryLock("create-invoice", 300);
-
-    // Test wheter we got a lock successfully. dlock does not throw exceptions in case lock is taken by other process,
-    // as such a situation is no an exceptional one
-    if(handle.isPresent()) {
-        try {
-            // generate an invoice...
-        } finally {
-            // Self explanatory, let's just tidy up after ourselves
-            handle.get().unlock();
-        }
-    }
-}
-``` 
-
-As you have noticed, you had to declare an estimated time of how long your lock should be active.
-This estimation should be as pessimistic as possible. 
-It's because we rely on the _unlock()_ part which is going to release the lock eventually.
-If the _unlock()_ execution fails the lock with a given name will be available again after the declared expiration time.
-
-## Set up your project
-
-1) Download **dlock** library
-
-Configure your pom.xml or build.gradle
-```groovy
-repositories {
-    maven {
-        url  "https://dl.bintray.com/pmalirz/malitools" 
-    }
-}
-
-dependencies {
-    // must have
-    implementation 'dlock:dlock-api:2.0.1'
-    implementation 'dlock:dlock-core:2.0.1'
-    // when you configure dlock with the database  
-    implementation 'dlock:dlock-jdbc:2.0.1'
-    // when you need a spring support (enables @Lock annotation)
-    implementation 'dlock:dlock-spring:2.0.1'
-}
-```
-
-2) Create **DLOCK** table in your database
-
-By default **dlock** uses DLOCK for the main table name. 
-However you are free to change it (see pt 3).
-DDL scripts for different database types can by found inside the jar file or the dlock [sources](dlock-jdbc/src/main/resources/db).
-
-DDL for H2:
-```sql
-CREATE TABLE IF NOT EXISTS "@@tableName@@" (
+CREATE TABLE IF NOT EXISTS "DLCK" (
   "LCK_KEY" varchar(1000) PRIMARY KEY,
-  "LCK_HNDL_ID" varchar(100) not null,
-  "CREATED_TIME" DATETIME not null,
-  "EXPIRE_SEC" int not null
+  "LCK_HNDL_ID" varchar(100) NOT NULL,
+  "CREATED_TIME" DATETIME NOT NULL,
+  "EXPIRE_SEC" int NOT NULL
 );
-CREATE UNIQUE INDEX IF NOT EXISTS "@@tableName@@_HNDL_UX" ON  "@@tableName@@" ("LCK_HNDL_ID");
-```
-**LCK_KEY** column has to be unique!
-
-The database structures could be also created by the _JDBCKeyLockBuilder_ (see the next point). 
- 
-3) Create your _KeyLock_ instance 
-
-```java
-@Bean
-public KeyLock createKeyLock() {
-    return new JDBCKeyLockBuilder().dataSource(dataSource).databaseType(DatabaseType.H2).build();
-}
-```
-or, the same but with automatic initialization of the required database structures
-```java
-@Bean
-public KeyLock createKeyLock() {
-    return new JDBCKeyLockBuilder().dataSource(dataSource).databaseType(DatabaseType.H2).createDatabase(true).build();
-}
+CREATE UNIQUE INDEX "DLCK_HNDL_UX" ON "DLCK" ("LCK_HNDL_ID");
 ```
 
-Remember, _KeyLock_ instance is thread-safe. 
+### Locking Sequence
 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant App as Application
+    participant Lock as KeyLock (Core)
+    participant Repo as LockRepository (JDBC)
+    participant DB as Database (DLCK Table)
+
+    App->>Lock: tryLock(key, time)
+    Lock->>Repo: tryLock(key, expiration)
+    Repo->>DB: INSERT INTO DLCK ...
+    alt Lock Acquired
+        DB-->>Repo: 1 row inserted
+        Repo-->>Lock: true
+        Lock-->>App: Optional[dlockHandle]
+    else Lock Busy
+        DB-->>Repo: 0 rows / Constraint Violation
+        Repo-->>Lock: false
+        Lock-->>App: Optional.empty
+    end
+```
+
+> **Mutual exclusion is guaranteed** even under concurrent lock expiration reclaim across multiple nodes. See [dlock-jdbc Safety Guarantees](./dlock-jdbc/README.md#safety-guarantees) for the full analysis.
+
+## API Guidelines
+
+When using the `KeyLock` API, keep the following constraints in mind:
+
+* **`lockKey`** must be a non-blank string, up to 1000 characters (the database column limit).
+* **`expirationSeconds`** must be greater than 0.
+* **Lock keys should be descriptive and scoped** (e.g., `"/invoice/{id}"`) to avoid unintended collisions.
+
+## Project Structure
+
+* [**dlock-api**](./dlock-api): Core interfaces (`KeyLock`, `LockHandle`).
+* [**dlock-core**](./dlock-core): Base implementation logic (expiration policies, utilities).
+* [**dlock-jdbc**](./dlock-jdbc): JDBC implementation (H2, Oracle support).
+* [**dlock-spring**](./dlock-spring): Spring integration (`@Lock` aspect).
+
+```mermaid
+graph TD
+    subgraph "dlock Modules"
+        Spring[dlock-spring]
+        JDBC[dlock-jdbc]
+        Core[dlock-core]
+        API[dlock-api]
+    end
+
+    Spring --> Core
+    JDBC -- realizes --> Core
+    Core --> API
+```
+
+## Local Development
+
+Prerequisites: JDK 17+
+
+Build the project:
+
+```bash
+./gradlew build
+```
+
+Run benchmarks:
+
+```bash
+./gradlew :dlock-jdbc:jmh
+```
+
+## License
+
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.

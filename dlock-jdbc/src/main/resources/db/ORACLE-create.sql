@@ -4,4 +4,4 @@ CREATE TABLE "@@tableName@@" (
   "CREATED_TIME" TIMESTAMP not null,
   "EXPIRE_SEC" INTEGER not null
 );
-CREATE UNIQUE INDEX IF NOT EXISTS "@@tableName@@_HNDL_UX" ON  "@@tableName@@" ("LCK_HNDL_ID");
+CREATE UNIQUE INDEX "@@tableName@@_HNDL_UX" ON "@@tableName@@" ("LCK_HNDL_ID");

@@ -71,8 +71,7 @@ class JDBCKeyLockBuilder {
         val scriptResolver = ScriptResolver(databaseType, lockTableName)
 
         val lockRepository = JDBCLockRepository(scriptResolver, dataSource)
-        val lockHandleUUIDGenerator = LockHandleUUIDIdGenerator()
-        val dbdLock = SimpleKeyLock(lockRepository, lockHandleUUIDGenerator, lockExpirationPolicy, lockDateTimeProvider)
+        val dbdLock = SimpleKeyLock(lockRepository, lockHandleIdGenerator, lockExpirationPolicy, lockDateTimeProvider)
 
         if (createDatabase) {
             InitDatabase(scriptResolver, dataSource).createDatabase()

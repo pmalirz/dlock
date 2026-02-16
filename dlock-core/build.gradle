@@ -12,7 +12,6 @@ test {
 
 dependencies {
     api project(":dlock-api")
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
     testImplementation "org.apache.groovy:groovy-all:4.0.17"
     testImplementation "org.spockframework:spock-core:2.4-M1-groovy-4.0"

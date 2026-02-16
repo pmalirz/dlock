@@ -1,6 +1,5 @@
 plugins {
     id 'java-library'
-    id 'org.jetbrains.kotlin.jvm' version '2.2.21'
     id 'jacoco'
     id 'jacoco-report-aggregation'
     id 'maven-publish'
@@ -30,7 +29,7 @@ tasks.named('check') {
 
 subprojects {
 
-    apply plugin: "kotlin"
+    apply plugin: "java-library"
     apply plugin: "groovy"
     apply plugin: "jacoco"
     apply plugin: 'maven-publish'
@@ -43,13 +42,7 @@ subprojects {
         }
     }
 
-    kotlin {
-        jvmToolchain(17)
-    }
-
     dependencies {
-        implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-
         testImplementation "org.apache.groovy:groovy-all:4.0.17"
         testImplementation "org.spockframework:spock-core:2.4-M1-groovy-4.0"
         testImplementation "org.junit.jupiter:junit-jupiter-api:5.10.1"

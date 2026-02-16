@@ -12,13 +12,11 @@ def springVersion = '5.3.31'
 
 dependencies {
     api project(":dlock-core")
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
     testImplementation "org.apache.groovy:groovy-all:4.0.17"
     testImplementation "org.spockframework:spock-core:2.4-M1-groovy-4.0"
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.10.1"
     testImplementation "net.bytebuddy:byte-buddy:1.14.11"
-    testImplementation "org.jetbrains.kotlin:kotlin-reflect"
 
     implementation group: 'org.springframework', name: 'spring-context', version: springVersion
     implementation group: 'org.springframework', name: 'spring-aspects', version: springVersion

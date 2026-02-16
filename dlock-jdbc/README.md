@@ -43,11 +43,11 @@ Result: exactly one process wins. No transaction wrapping is required — the sa
 
 Unless you are building a custom integration, you will typically use this via the `JDBCKeyLockBuilder`.
 
-```kotlin
-val keyLock = JDBCKeyLockBuilder()
+```java
+KeyLock keyLock = new JDBCKeyLockBuilder()
     .dataSource(myDataSource)
     .databaseType(DatabaseType.H2)
-    .build()
+    .build();
 ```
 
 ## Benchmarks

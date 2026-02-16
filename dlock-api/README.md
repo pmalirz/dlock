@@ -8,18 +8,18 @@ This module provides the core API contract for **dlock**, ensuring minimal coupl
 
 The primary interface for simplified lock operations.
 
-```kotlin
-interface KeyLock {
+```java
+public interface KeyLock {
     /**
      * Attempts to acquire a lock by key.
      * @return Optional<LockHandle> - Present if acquired, empty if not.
      */
-    fun tryLock(lockKey: String, expirationSeconds: Long): Optional<LockHandle>
+    Optional<LockHandle> tryLock(String lockKey, long expirationSeconds);
 
     /**
      * Releases the lock using the provided handle.
      */
-    fun unlock(lockHandle: LockHandle)
+    void unlock(LockHandle lockHandle);
 }
 ```
 
@@ -27,10 +27,8 @@ interface KeyLock {
 
 Represents an active lock. It contains the key and the handle ID.
 
-```kotlin
-interface LockHandle {
-    val handleId: String
-    val key: String
+```java
+public record LockHandle(String handleId, String key) {
 }
 ```
 

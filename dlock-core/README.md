@@ -25,16 +25,20 @@ To implement a custom storage backend:
 1. Implement `LockRepository`.
 2. Instantiate `SimpleKeyLock` with your repository.
 
-```kotlin
-class MyCustomRepository : LockRepository {
-    override fun tryLock(lock: LockModel): Boolean {
+```java
+public class MyCustomRepository implements LockRepository {
+    @Override
+    public boolean tryLock(LockModel lock) {
         // Implement lock acquisition
+        return false;
     }
 
-    override fun unlock(lock: LockModel): Boolean {
+    @Override
+    public boolean unlock(LockModel lock) {
         // Implement release
+        return false;
     }
 }
 
-val myLock = SimpleKeyLock(MyCustomRepository(), ...)
+SimpleKeyLock myLock = new SimpleKeyLock(new MyCustomRepository(), ...);
 ```

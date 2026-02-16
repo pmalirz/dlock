@@ -6,7 +6,7 @@
 [![Known Vulnerabilities](https://snyk.io/test/github/pmalirz/dlock/badge.svg)](https://snyk.io/test/github/pmalirz/dlock)
 [![codecov](https://codecov.io/gh/pmalirz/dlock/branch/master/graph/badge.svg)](https://codecov.io/gh/pmalirz/dlock)
 
-**dlock** is a simple and reliable distributed locking solution for Java/Kotlin applications, using your existing database (JDBC) as the synchronization mechanism.
+**dlock** is a simple and reliable distributed locking solution for Java applications, using your existing database (JDBC) as the synchronization mechanism.
 
 Why limit yourself to complex infrastructure like Redis or Zookeeper when your relational database can handle distributed locking with ACID guarantees?
 
@@ -27,6 +27,7 @@ The most common way to use **dlock** is with Spring Framework support.
 Add the following to your `build.gradle`:
 
 ```kotlin
+// build.gradle.kts
 implementation("com.dlock:dlock-spring:3.0.0-SNAPSHOT")
 implementation("com.dlock:dlock-jdbc:3.0.0-SNAPSHOT")
 ```
@@ -95,7 +96,7 @@ public class InvoiceService {
 }
 ```
 
-## Programmatic Usage (Java/Kotlin)
+## Programmatic Usage
 
 You can also use the API directly without Spring.
 

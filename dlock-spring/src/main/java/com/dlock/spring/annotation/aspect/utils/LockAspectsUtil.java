@@ -3,7 +3,6 @@ package com.dlock.spring.annotation.aspect.utils;
 import com.dlock.spring.annotation.LockKeyParam;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.core.annotation.AnnotationUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -57,7 +56,7 @@ public class LockAspectsUtil {
         Parameter[] parameters = method.getParameters();
         for (int i = 0; i < parameters.length; i++) {
             Parameter parameter = parameters[i];
-            LockKeyParam annotation = AnnotationUtils.findAnnotation(parameter, LockKeyParam.class);
+            LockKeyParam annotation = parameter.getAnnotation(LockKeyParam.class);
             if (annotation != null) {
                 result.add(new LockKeyParameter(i, annotation.value()));
             }

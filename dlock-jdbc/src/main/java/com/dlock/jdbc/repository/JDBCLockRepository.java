@@ -43,6 +43,10 @@ public class JDBCLockRepository implements LockRepository {
             }
             return recordCreated;
         } catch (SQLException e) {
+            // SQLState class 23 = integrity constraint violation (unique key, etc.)
+            if (e.getSQLState() != null && e.getSQLState().startsWith("23")) {
+                return false;
+            }
             throw new RuntimeException(e);
         }
     }

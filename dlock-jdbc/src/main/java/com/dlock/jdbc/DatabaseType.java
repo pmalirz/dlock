@@ -9,7 +9,8 @@ import java.util.Arrays;
  */
 public enum DatabaseType {
     H2,
-    ORACLE;
+    ORACLE,
+    POSTGRESQL;
 
     public static String[] valuesAsString() {
         return Arrays.stream(values())

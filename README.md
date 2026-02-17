@@ -221,6 +221,7 @@ Build the project:
 Run benchmarks:
 
 ```bash
+./gradlew :dlock-core:jmh
 ./gradlew :dlock-jdbc:jmh
 ```
 

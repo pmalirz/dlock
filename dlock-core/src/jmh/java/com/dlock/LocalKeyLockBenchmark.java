@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Przemyslaw Malirz
  */
-@State(Scope.Benchmark)
 public class LocalKeyLockBenchmark {
 
     @State(Scope.Benchmark)

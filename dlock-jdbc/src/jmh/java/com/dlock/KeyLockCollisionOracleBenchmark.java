@@ -8,10 +8,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
-import java.sql.SQLException;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
 /**
  * Test with Oracle.
  *

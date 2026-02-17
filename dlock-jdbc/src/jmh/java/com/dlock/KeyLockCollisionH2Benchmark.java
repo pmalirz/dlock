@@ -36,7 +36,7 @@ public class KeyLockCollisionH2Benchmark {
             dataSource = new HikariDataSource(config);
 
             keyLock = new JDBCKeyLockBuilder().dataSource(dataSource)
-                    .databaseType(DatabaseType.H2) // Ensure DatabaseType is imported or fully qualified
+                    .databaseType(DatabaseType.H2)
                     .createDatabase(true).build();
 
             keyLock.tryLock(LOCK_KEY, 100000);

@@ -248,11 +248,13 @@ The following benchmarks demonstrate the throughput of **dlock-core** (in-memory
 | **dlock-core** | `tryAndReleaseLockNoCollision` | Acquire & release unique key (random UUID); no collision | **895.5 k** | ± 523.8 k |
 | | `tryLockAlwaysCollision` | Attempt to acquire an active lock; 100% collision | **48.9 M** | ± 2.8 M |
 | | `tryLockExpiresEverySecond` | High-frequency attempts on single key (1s expiration) | **45.2 M** | ± 10.4 M |
-| **dlock-jdbc** | `tryAndReleaseLockNoCollision` | Acquire & release unique key (random UUID); no collision | **11.1 k** | ± 0.2 k |
+| **dlock-jdbc** | `tryAndReleaseLockNoCollision` | Acquire & release unique key (random UUID); no collision; DB pre-populated with 100k locks | **11.1 k** | ± 0.2 k |
 | | `tryLockAlwaysCollision` | Attempt to acquire an active lock; 100% collision | **47.6 k** | ± 5.4 k |
 | | `tryLockNoCollision` | Acquire unique key (random UUID) without release | **18.3 k** | ± 17.2 k |
 
 > **Note**: `dlock-core` is purely in-memory and serves as a baseline for overhead. `dlock-jdbc` involves actual network/database round-trips to the H2 server (local, file-based server, not in-memory).
+>
+> The `tryAndReleaseLockNoCollision` JDBC benchmark pre-populates the database with 100k existing locks before measurement to simulate a realistic "noisy" table and measure performance under non-trivial data volume.
 
 ## License
 

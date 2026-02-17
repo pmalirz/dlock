@@ -19,7 +19,7 @@ public class ClosableKeyLockProvider {
         this.keyLock = keyLock;
     }
 
-    public void withLock(String lockKey, long expirationSeconds, Consumer<LockHandle> f) {
+    public void tryLock(String lockKey, long expirationSeconds, Consumer<LockHandle> f) {
         Optional<LockHandle> lock = keyLock.tryLock(lockKey, expirationSeconds);
         if (lock.isPresent()) {
             try (ClosableLockHandle closable = new ClosableLockHandle(lock.get())) {

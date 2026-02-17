@@ -129,9 +129,9 @@ if (lockHandle.isPresent()) {
 ### Using Closable Provider (Table-Flip safe)
 
 ```java
-ClosableKeyLockProvider provider = new ClosableKeyLockProvider(keyLock);
+ClosableKeyLockProvider lockProvider = new ClosableKeyLockProvider(keyLock);
 
-provider.withLock("my-resource-lock", 300, handle -> {
+lockProvider.tryLock("my-resource-lock", 300, handle -> {
     // This block is executed only if lock is acquired.
     // Lock is automatically released after this block.
     performTask();

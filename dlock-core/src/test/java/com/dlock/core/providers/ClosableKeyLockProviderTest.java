@@ -25,7 +25,7 @@ class ClosableKeyLockProviderTest {
 
         AtomicReference<LockHandle> lockHandleRef = new AtomicReference<>();
 
-        keyLockProvider.withLock("a", 1, (lockHandle) -> {
+        keyLockProvider.tryLock("a", 1, (lockHandle) -> {
             lockHandleRef.set(lockHandle);
             assertEquals("xyz", lockHandle.handleId());
         });
@@ -42,7 +42,7 @@ class ClosableKeyLockProviderTest {
 
         ClosableKeyLockProvider keyLockProvider = new ClosableKeyLockProvider(keyLock);
 
-        keyLockProvider.withLock("a", 1, (lockHandle) -> {
+        keyLockProvider.tryLock("a", 1, (lockHandle) -> {
             fail("Lock should not be taken");
         });
 

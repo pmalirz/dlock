@@ -52,7 +52,7 @@ public class LockAspect {
                     joinPoint.getArgs()[parameter.index()].toString());
         }
 
-        keyLockProvider.withLock(lockKeyValue, lockAnnotation.expirationSeconds(), (handle) -> {
+        keyLockProvider.tryLock(lockKeyValue, lockAnnotation.expirationSeconds(), (handle) -> {
             try {
                 joinPoint.proceed();
             } catch (Throwable e) {

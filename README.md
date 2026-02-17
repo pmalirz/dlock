@@ -49,7 +49,7 @@ Or `pom.xml`:
 
 ### 2. Configure Beans
 
-Enable the aspect and configure the required beans: `KeyLock` and `ClosableKeyLockProvider`.
+Enable the aspect and configure the `KeyLock` bean.
 
 ```java
 @Configuration
@@ -63,11 +63,6 @@ public class DLockConfig {
                 .databaseType(DatabaseType.H2) // or ORACLE
                 .createDatabase(true) // Automatically creates the DLCK table
                 .build();
-    }
-
-    @Bean
-    public ClosableKeyLockProvider closableKeyLockProvider(KeyLock keyLock) {
-        return new ClosableKeyLockProvider(keyLock);
     }
 }
 ```
@@ -126,12 +121,12 @@ if (lockHandle.isPresent()) {
 }
 ```
 
-### Using Closable Provider (Table-Flip safe)
+### Auto-Release with Consumer
+
+For a simpler pattern where the lock is automatically released after the action completes:
 
 ```java
-ClosableKeyLockProvider lockProvider = new ClosableKeyLockProvider(keyLock);
-
-lockProvider.tryLock("my-resource-lock", 300, handle -> {
+keyLock.tryLock("my-resource-lock", 300, handle -> {
     // This block is executed only if lock is acquired.
     // Lock is automatically released after this block.
     performTask();
@@ -208,7 +203,7 @@ graph TD
         API[dlock-api]
     end
 
-    Spring --> Core
+    Spring --> API
     JDBC -- realizes --> Core
     Core --> API
 ```

@@ -11,7 +11,7 @@ test {
 def springVersion = '5.3.31'
 
 dependencies {
-    api project(":dlock-core")
+    api project(":dlock-api")
 
     testImplementation "org.apache.groovy:groovy-all:4.0.24"
     testImplementation "org.spockframework:spock-core:2.4-groovy-4.0"

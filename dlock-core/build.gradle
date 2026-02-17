@@ -32,16 +32,16 @@ dependencies {
 }*/
 
 jmh {
-    fork = 2
-    iterations = 2
+    fork = 1
+    iterations = 3
     jmhVersion = '1.37'
     profilers = ['gc']
-    threads = 10
-    warmup = '1s'
+    threads = 12
+    warmup = '2s'
     warmupBatchSize = 1
-    warmupIterations = 1
+    warmupIterations = 3
     includeTests = false
-    jvmArgs = ['-Xms512m', '-Xmx1024m', '-Dlog4j.configurationFile=conf/log4j2.xml']
+    jvmArgs = ['-Xms512m', '-Xmx1024m', '-Dlog4j.configurationFile=conf/log4j2.xml', '-Djmh.blackhole.autoDetect=false']
 }
 
 jmhJar {

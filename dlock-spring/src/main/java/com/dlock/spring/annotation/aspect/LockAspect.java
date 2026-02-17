@@ -1,6 +1,6 @@
 package com.dlock.spring.annotation.aspect;
 
-import com.dlock.core.providers.ClosableKeyLockProvider;
+import com.dlock.api.KeyLock;
 import com.dlock.spring.annotation.Lock;
 import com.dlock.spring.annotation.aspect.utils.LockAspectsUtil;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -22,11 +22,11 @@ import java.util.List;
 @Component
 public class LockAspect {
 
-    private final ClosableKeyLockProvider keyLockProvider;
+    private final KeyLock keyLock;
 
     @Autowired
-    public LockAspect(ClosableKeyLockProvider keyLockProvider) {
-        this.keyLockProvider = keyLockProvider;
+    public LockAspect(KeyLock keyLock) {
+        this.keyLock = keyLock;
     }
 
     @Around("@annotation(com.dlock.spring.annotation.Lock)")
@@ -52,7 +52,7 @@ public class LockAspect {
                     joinPoint.getArgs()[parameter.index()].toString());
         }
 
-        keyLockProvider.withLock(lockKeyValue, lockAnnotation.expirationSeconds(), (handle) -> {
+        keyLock.tryLock(lockKeyValue, lockAnnotation.expirationSeconds(), (handle) -> {
             try {
                 joinPoint.proceed();
             } catch (Throwable e) {

@@ -252,7 +252,7 @@ The following benchmarks demonstrate the throughput of **dlock-core** (in-memory
 | | `tryLockAlwaysCollision` | Attempt to acquire an active lock; 100% collision | **47.6 k** | ± 5.4 k |
 | | `tryLockNoCollision` | Acquire unique key (random UUID) without release | **18.3 k** | ± 17.2 k |
 
-> **Note**: `dlock-core` is purely in-memory and serves as a baseline for overhead. `dlock-jdbc` involves actual network/database round-trips to the H2 server.
+> **Note**: `dlock-core` is purely in-memory and serves as a baseline for overhead. `dlock-jdbc` involves actual network/database round-trips to the H2 server (local, file-based server, not in-memory).
 
 ## License
 

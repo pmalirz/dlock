@@ -5,63 +5,116 @@ import com.dlock.api.LockHandle;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
 
 /**
- * Tests for the
- * {@link KeyLock#tryLock(String, long, java.util.function.Consumer)} default
- * method.
+ * Tests for the {@link KeyLock} default methods.
  */
 class KeyLockDefaultMethodTest {
 
-    @Test
-    void tryLock_LockAcquired_executesActionAndUnlocks() {
-        KeyLock keyLock = mock(KeyLock.class, withSettings().defaultAnswer(invocation -> {
-            if (invocation.getMethod().isDefault()) {
-                return invocation.callRealMethod();
+    static class TestKeyLock implements KeyLock {
+        private final LockHandle handleToReturn;
+        public boolean unlocked = false;
+        public int tryLockCalls = 0;
+
+        public TestKeyLock(LockHandle handleToReturn) {
+            this.handleToReturn = handleToReturn;
+        }
+
+        @Override
+        public Optional<LockHandle> tryLock(String lockKey, long expirationSeconds) {
+            tryLockCalls++;
+            return Optional.ofNullable(handleToReturn);
+        }
+
+        @Override
+        public void unlock(LockHandle lockHandle) {
+            if (handleToReturn != null && handleToReturn.equals(lockHandle)) {
+                unlocked = true;
             }
-            return null;
-        }));
-        when(keyLock.tryLock("a", 1)).thenReturn(Optional.of(new LockHandle("xyz")));
-
-        AtomicReference<LockHandle> lockHandleRef = new AtomicReference<>();
-
-        keyLock.tryLock("a", 1, (lockHandle) -> {
-            lockHandleRef.set(lockHandle);
-            assertEquals("xyz", lockHandle.handleId());
-        });
-
-        verify(keyLock).tryLock("a", 1);
-        verify(keyLock).unlock(lockHandleRef.get());
+        }
     }
 
     @Test
-    void tryLock_LockNotAcquired_doesNotExecuteAction() {
-        KeyLock keyLock = mock(KeyLock.class, withSettings().defaultAnswer(invocation -> {
-            if (invocation.getMethod().isDefault()) {
-                return invocation.callRealMethod();
-            }
-            return null;
-        }));
-        when(keyLock.tryLock("a", 1)).thenReturn(Optional.empty());
+    void tryLockConsumer_LockAcquired() {
+        LockHandle handle = new LockHandle("h1");
+        TestKeyLock keyLock = new TestKeyLock(handle);
+        AtomicBoolean executed = new AtomicBoolean(false);
 
-        AtomicReference<LockHandle> lockHandleRef = new AtomicReference<>();
-
-        keyLock.tryLock("a", 1, (lockHandle) -> {
-            fail("Action should not be executed when lock is not acquired");
+        keyLock.tryLock("key", 10, h -> {
+            assertEquals(handle, h);
+            executed.set(true);
         });
 
-        assertNull(lockHandleRef.get());
-
-        verify(keyLock).tryLock("a", 1);
+        assertTrue(executed.get());
+        assertTrue(keyLock.unlocked);
+        assertEquals(1, keyLock.tryLockCalls);
     }
 
+    @Test
+    void tryLockConsumer_LockNotAcquired() {
+        TestKeyLock keyLock = new TestKeyLock(null);
+        AtomicBoolean executed = new AtomicBoolean(false);
+
+        keyLock.tryLock("key", 10, h -> {
+            executed.set(true);
+        });
+
+        assertFalse(executed.get());
+        assertFalse(keyLock.unlocked);
+        assertEquals(1, keyLock.tryLockCalls);
+    }
+
+    @Test
+    void tryLockFunction_LockAcquired() {
+        LockHandle handle = new LockHandle("h1");
+        TestKeyLock keyLock = new TestKeyLock(handle);
+
+        Optional<String> result = keyLock.tryLock("key", 10, h -> {
+            assertEquals(handle, h);
+            return "result";
+        });
+
+        assertTrue(result.isPresent());
+        assertEquals("result", result.get());
+        assertTrue(keyLock.unlocked);
+        assertEquals(1, keyLock.tryLockCalls);
+    }
+
+    @Test
+    void tryLockFunction_LockNotAcquired() {
+        TestKeyLock keyLock = new TestKeyLock(null);
+
+        Optional<String> result = keyLock.tryLock("key", 10, (h) -> {
+            return "result";
+        });
+
+        assertFalse(result.isPresent());
+        assertFalse(keyLock.unlocked);
+        assertEquals(1, keyLock.tryLockCalls);
+    }
+
+    @Test
+    void tryLockFunction_ExceptionInAction() {
+        LockHandle handle = new LockHandle("h1");
+        TestKeyLock keyLock = new TestKeyLock(handle);
+
+        try {
+            keyLock.tryLock("key", 10, h -> {
+                if (true) throw new RuntimeException("fail");
+                return "dummy";
+            });
+            fail("Should throw exception");
+        } catch (RuntimeException e) {
+            assertEquals("fail", e.getMessage());
+        }
+
+        assertTrue(keyLock.unlocked); // Should still unlock
+    }
 }

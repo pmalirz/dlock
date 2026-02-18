@@ -1,5 +1,6 @@
 package com.dlock.jdbc.repository;
 
+import com.dlock.api.exception.LockException;
 import com.dlock.core.model.ReadLockRecord;
 import com.dlock.core.model.WriteLockRecord;
 import com.dlock.core.repository.LockRepository;
@@ -47,7 +48,7 @@ public class JDBCLockRepository implements LockRepository {
             if (e.getSQLState() != null && e.getSQLState().startsWith("23")) {
                 return false;
             }
-            throw new RuntimeException(e);
+            throw new LockException("Error while creating lock: " + lockRecord, e);
         }
     }
 
@@ -56,7 +57,7 @@ public class JDBCLockRepository implements LockRepository {
         try (Connection connection = dataSource.getConnection()) {
             return executeFindByHandleId(connection, lockHandleId);
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new LockException("Error while finding lock by handle: " + lockHandleId, e);
         }
     }
 
@@ -65,7 +66,7 @@ public class JDBCLockRepository implements LockRepository {
         try (Connection connection = dataSource.getConnection()) {
             return executeFindByKey(connection, lockKey);
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new LockException("Error while finding lock by key: " + lockKey, e);
         }
     }
 
@@ -77,7 +78,7 @@ public class JDBCLockRepository implements LockRepository {
                 commit(connection);
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new LockException("Error while removing lock: " + lockHandleId, e);
         }
     }
 

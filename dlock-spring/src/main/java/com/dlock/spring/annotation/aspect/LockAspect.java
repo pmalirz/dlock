@@ -1,6 +1,7 @@
 package com.dlock.spring.annotation.aspect;
 
 import com.dlock.api.KeyLock;
+import com.dlock.api.LockHandle;
 import com.dlock.spring.annotation.Lock;
 import com.dlock.spring.annotation.aspect.utils.LockAspectsUtil;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The aspect handling the {@link Lock} annotation.
@@ -30,7 +32,7 @@ public class LockAspect {
     }
 
     @Around("@annotation(com.dlock.spring.annotation.Lock)")
-    public void aroundLockedMethod(ProceedingJoinPoint joinPoint) throws Throwable {
+    public Object aroundLockedMethod(ProceedingJoinPoint joinPoint) throws Throwable {
 
         Method targetMethod = LockAspectsUtil.getMethod(joinPoint);
         if (targetMethod == null) {
@@ -52,13 +54,16 @@ public class LockAspect {
                     joinPoint.getArgs()[parameter.index()].toString());
         }
 
-        keyLock.tryLock(lockKeyValue, lockAnnotation.expirationSeconds(), (handle) -> {
+        Optional<LockHandle> lock = keyLock.tryLock(lockKeyValue, lockAnnotation.expirationSeconds());
+        if (lock.isPresent()) {
             try {
-                joinPoint.proceed();
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
+                return joinPoint.proceed();
+            } finally {
+                keyLock.unlock(lock.get());
             }
-        });
+        } else {
+            return null;
+        }
     }
 
 }

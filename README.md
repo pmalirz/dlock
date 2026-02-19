@@ -76,9 +76,9 @@ Annotate your methods with `@Lock`.
 
 **Important**:
 
-* If the lock cannot be acquired (e.g., held by another node), the method execution is **skipped**.
+* If the lock cannot be acquired (e.g., held by another node), the method execution is **skipped**, and `null` is returned.
 * This pattern is best suited for scheduled tasks or void methods where "skip if running" is the desired behavior.
-* The annotation currently does not support returning values (swallows return values).
+* If the method returns a value, the caller must handle `null` in case of lock failure.
 
 ```java
 @Service
@@ -124,15 +124,20 @@ if (lockHandle.isPresent()) {
 }
 ```
 
-### Auto-Release with Consumer
+### Auto-Release with Consumer or Function
 
 For a simpler pattern where the lock is automatically released after the action completes:
 
 ```java
+// With Consumer (void)
 keyLock.tryLock("my-resource-lock", 300, handle -> {
     // This block is executed only if lock is acquired.
-    // Lock is automatically released after this block.
     performTask();
+});
+
+// With Function (returns value)
+Optional<String> result = keyLock.tryLock("my-calc-lock", 300, handle -> {
+    return computeResult();
 });
 ```
 

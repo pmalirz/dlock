@@ -1,10 +1,13 @@
-<img src="https://github.com/pmalirz/dlock/blob/master/doc/images/dlock-logo.png" width="300">
-
-# dlock - Distributed Lock Backed by Your Database
+<h1 align="center">dlock</h1>
+<p align="center">Distributed Lock Backed by Your Database</p>
 
 [![Build](https://github.com/pmalirz/dlock/actions/workflows/gradle.yml/badge.svg)](https://github.com/pmalirz/dlock/actions/workflows/gradle.yml)
 [![Known Vulnerabilities](https://snyk.io/test/github/pmalirz/dlock/badge.svg)](https://snyk.io/test/github/pmalirz/dlock)
 [![codecov](https://codecov.io/gh/pmalirz/dlock/branch/master/graph/badge.svg)](https://codecov.io/gh/pmalirz/dlock)
+[![License](https://img.shields.io/github/license/pmalirz/dlock)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/pmalirz/dlock)](https://github.com/pmalirz/dlock/releases)
+[![Issues](https://img.shields.io/github/issues/pmalirz/dlock)](https://github.com/pmalirz/dlock/issues)
+[![Java Version](https://img.shields.io/badge/Java-17%2B-blue)](https://adoptium.net/)
 
 **dlock** is a simple and reliable distributed locking solution for Java applications, using your existing database (JDBC) as the synchronization mechanism.
 

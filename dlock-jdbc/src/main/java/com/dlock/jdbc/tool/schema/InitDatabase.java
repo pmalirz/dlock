@@ -37,10 +37,6 @@ public class InitDatabase {
                     continue;
                 try (Statement createStatement = conn.createStatement()) {
                     createStatement.execute(ddl);
-                } catch (SQLException e) {
-                    // It is possible that the object already exists (e.g. table or index).
-                    // In such case we just ignore the error and move forward.
-                    // We can't use IF NOT EXISTS for all databases (e.g. Oracle).
                 }
             }
         } catch (SQLException e) {

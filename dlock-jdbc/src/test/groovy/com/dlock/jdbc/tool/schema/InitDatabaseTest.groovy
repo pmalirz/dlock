@@ -15,10 +15,25 @@ class InitDatabaseTest extends Specification {
     Connection connection = Mock()
     Statement statement = Mock()
 
-    def "should execute all ddls even if one fails"() {
+    def "should throw exception if SQL fails"() {
         given:
         def initDatabase = new InitDatabase(scriptResolver, dataSource)
-        scriptResolver.resolveDDLScripts() >> ["CREATE TABLE DLCK ...", "CREATE INDEX ..."]
+        scriptResolver.resolveDDLScripts() >> ["CREATE TABLE DLCK ..."]
+        dataSource.getConnection() >> connection
+        connection.createStatement() >> statement
+        statement.execute(_) >> { throw new SQLException("Table exists") }
+
+        when:
+        initDatabase.createDatabase()
+
+        then:
+        thrown(RuntimeException)
+    }
+
+    def "should execute DDL successfully"() {
+        given:
+        def initDatabase = new InitDatabase(scriptResolver, dataSource)
+        scriptResolver.resolveDDLScripts() >> ["CREATE TABLE DLCK ..."]
         dataSource.getConnection() >> connection
         connection.createStatement() >> statement
 
@@ -26,21 +41,7 @@ class InitDatabaseTest extends Specification {
         initDatabase.createDatabase()
 
         then:
-        1 * statement.execute("CREATE TABLE DLCK ...") >> { throw new SQLException("Table exists") }
-        1 * statement.execute("CREATE INDEX ...")
+        1 * statement.execute("CREATE TABLE DLCK ...")
         noExceptionThrown()
-    }
-
-    def "should throw exception if connection fails"() {
-        given:
-        def initDatabase = new InitDatabase(scriptResolver, dataSource)
-        scriptResolver.resolveDDLScripts() >> ["CREATE TABLE DLCK ..."]
-        dataSource.getConnection() >> { throw new SQLException("Connection failed") }
-
-        when:
-        initDatabase.createDatabase()
-
-        then:
-        thrown(RuntimeException)
     }
 }

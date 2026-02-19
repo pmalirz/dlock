@@ -37,10 +37,22 @@ public class InitDatabase {
                     continue;
                 try (Statement createStatement = conn.createStatement()) {
                     createStatement.execute(ddl);
+                } catch (SQLException e) {
+                    if (isIgnorableError(e)) {
+                        // ignore
+                    } else {
+                        throw new RuntimeException("Failed to initialize database", e);
+                    }
                 }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to initialize database", e);
         }
+    }
+
+    private boolean isIgnorableError(SQLException e) {
+        // Oracle: ORA-00955: name is already used by an existing object
+        // H2 and PostgreSQL use "IF NOT EXISTS" in their DDL scripts, so they don't throw for existing objects.
+        return e.getErrorCode() == 955;
     }
 }

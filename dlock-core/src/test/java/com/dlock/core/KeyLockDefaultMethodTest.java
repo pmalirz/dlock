@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -107,8 +106,8 @@ class KeyLockDefaultMethodTest {
 
         try {
             keyLock.tryLock("key", 10, h -> {
-                if (true) throw new RuntimeException("fail");
-                return "dummy";
+                if (true)
+                    throw new RuntimeException("fail");
             });
             fail("Should throw exception");
         } catch (RuntimeException e) {

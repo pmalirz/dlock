@@ -30,27 +30,21 @@ public class InitDatabase {
 
     public synchronized void createDatabase() {
         List<String> ddls = scriptResolver.resolveDDLScripts();
-        String tableName = scriptResolver.getTableName();
 
         try (Connection conn = dataSource.getConnection()) {
-            if (tableExists(conn, tableName)) {
-                return;
-            }
             for (String ddl : ddls) {
                 if (ddl.isBlank())
                     continue;
                 try (Statement createStatement = conn.createStatement()) {
                     createStatement.execute(ddl);
+                } catch (SQLException e) {
+                    // It is possible that the object already exists (e.g. table or index).
+                    // In such case we just ignore the error and move forward.
+                    // We can't use IF NOT EXISTS for all databases (e.g. Oracle).
                 }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to initialize database", e);
         }
-    }
-
-    private boolean tableExists(Connection conn, String tableName) throws SQLException {
-        return conn.getMetaData().getTables(null, null, tableName, null).next() ||
-                conn.getMetaData().getTables(null, null, tableName.toUpperCase(), null).next() ||
-                conn.getMetaData().getTables(null, null, tableName.toLowerCase(), null).next();
     }
 }

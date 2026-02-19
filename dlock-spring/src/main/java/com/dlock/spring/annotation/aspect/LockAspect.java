@@ -50,8 +50,9 @@ public class LockAspect {
         List<LockAspectsUtil.LockKeyParameter> parameters = LockAspectsUtil.getLockKeyMethodParameters(targetMethod);
 
         for (LockAspectsUtil.LockKeyParameter parameter : parameters) {
-            lockKeyValue = lockKeyValue.replace("{" + parameter.name() + "}",
-                    joinPoint.getArgs()[parameter.index()].toString());
+            Object arg = joinPoint.getArgs()[parameter.index()];
+            String argValue = String.valueOf(arg);
+            lockKeyValue = lockKeyValue.replace("{" + parameter.name() + "}", argValue);
         }
 
         Optional<LockHandle> lock = keyLock.tryLock(lockKeyValue, lockAnnotation.expirationSeconds());

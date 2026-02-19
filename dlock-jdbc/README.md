@@ -6,7 +6,7 @@ This module provides the JDBC implementation of the **dlock** repository. It per
 
 * **ACID Compliance**: Uses database transactions to ensure lock consistency.
 * **Simple Schema**: Requires only a single table with 4 columns.
-* **Extensible**: Comes with built-in support for H2 and Oracle, but is designed to be adaptable to other SQL dialects.
+* **Extensible**: Comes with built-in support for H2, PostgreSQL and Oracle, but is designed to be adaptable to other SQL dialects.
 
 ## Supported Databases
 
@@ -14,6 +14,7 @@ Out-of-the-box support is provided for:
 
 * **H2** (Memory/File) - Great for testing and development.
 * **Oracle** - Production-grade support.
+* **PostgreSQL** - Production-grade support.
 
 To support other databases, valid SQL scripts must be provided for the `ScriptResolver`.
 

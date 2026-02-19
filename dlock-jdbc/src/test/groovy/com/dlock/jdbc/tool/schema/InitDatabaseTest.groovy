@@ -5,7 +5,8 @@ import spock.lang.Specification
 
 import javax.sql.DataSource
 import java.sql.Connection
-import java.sql.SQLException
+import java.sql.DatabaseMetaData
+import java.sql.ResultSet
 import java.sql.Statement
 
 class InitDatabaseTest extends Specification {
@@ -13,39 +14,43 @@ class InitDatabaseTest extends Specification {
     ScriptResolver scriptResolver = Mock()
     DataSource dataSource = Mock()
     Connection connection = Mock()
+    DatabaseMetaData metaData = Mock()
     Statement statement = Mock()
+    ResultSet resultSet = Mock()
 
-    def "should ignore Oracle object already exists error"() {
+    def "should create database when table does not exist"() {
         given:
         def initDatabase = new InitDatabase(scriptResolver, dataSource)
         scriptResolver.resolveDDLScripts() >> ["CREATE TABLE DLCK ..."]
+        scriptResolver.getTableName() >> "DLCK"
         dataSource.getConnection() >> connection
+        connection.getMetaData() >> metaData
+        metaData.getTables(null, null, _, null) >> resultSet
+        resultSet.next() >> false // Table does not exist
         connection.createStatement() >> statement
-
-        and:
-        statement.execute(_) >> { throw new SQLException("Object already exists", "42000", 955) }
 
         when:
         initDatabase.createDatabase()
 
         then:
-        noExceptionThrown()
+        1 * statement.execute("CREATE TABLE DLCK ...")
     }
 
-    def "should throw exception for other errors"() {
+    def "should not create database when table exists"() {
         given:
         def initDatabase = new InitDatabase(scriptResolver, dataSource)
         scriptResolver.resolveDDLScripts() >> ["CREATE TABLE DLCK ..."]
+        scriptResolver.getTableName() >> "DLCK"
         dataSource.getConnection() >> connection
-        connection.createStatement() >> statement
-
-        and:
-        statement.execute(_) >> { throw new SQLException("Syntax error", "42000", 123) }
+        connection.getMetaData() >> metaData
+        metaData.getTables(null, null, "DLCK", null) >> resultSet
+        resultSet.next() >> true // Table exists
 
         when:
         initDatabase.createDatabase()
 
         then:
-        thrown(RuntimeException)
+        0 * connection.createStatement()
+        0 * statement.execute(_)
     }
 }

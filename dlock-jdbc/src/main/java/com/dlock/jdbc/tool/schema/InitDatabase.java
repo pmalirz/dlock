@@ -30,19 +30,17 @@ public class InitDatabase {
 
     public synchronized void createDatabase() {
         List<String> ddls = scriptResolver.resolveDDLScripts();
+        String tableName = scriptResolver.getTableName();
 
         try (Connection conn = dataSource.getConnection()) {
+            if (tableExists(conn, tableName)) {
+                return;
+            }
             for (String ddl : ddls) {
                 if (ddl.isBlank())
                     continue;
                 try (Statement createStatement = conn.createStatement()) {
                     createStatement.execute(ddl);
-                } catch (SQLException e) {
-                    if (isIgnorableError(e)) {
-                        // ignore
-                    } else {
-                        throw new RuntimeException("Failed to initialize database", e);
-                    }
                 }
             }
         } catch (SQLException e) {
@@ -50,9 +48,9 @@ public class InitDatabase {
         }
     }
 
-    private boolean isIgnorableError(SQLException e) {
-        // Oracle: ORA-00955: name is already used by an existing object
-        // H2 and PostgreSQL use "IF NOT EXISTS" in their DDL scripts, so they don't throw for existing objects.
-        return e.getErrorCode() == 955;
+    private boolean tableExists(Connection conn, String tableName) throws SQLException {
+        return conn.getMetaData().getTables(null, null, tableName, null).next() ||
+                conn.getMetaData().getTables(null, null, tableName.toUpperCase(), null).next() ||
+                conn.getMetaData().getTables(null, null, tableName.toLowerCase(), null).next();
     }
 }

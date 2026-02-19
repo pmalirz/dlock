@@ -63,4 +63,8 @@ public class ScriptResolver {
             throw new RuntimeException("Failed to load DDL scripts", e);
         }
     }
+
+    public String getTableName() {
+        return tableName;
+    }
 }

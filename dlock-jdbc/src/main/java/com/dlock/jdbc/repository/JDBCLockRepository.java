@@ -26,6 +26,7 @@ public class JDBCLockRepository implements LockRepository {
     private final String findByHandleSQL;
     private final String findByKeySQL;
     private final String removeByHandleSQL;
+    private final int insertParamsCount;
 
     public JDBCLockRepository(ScriptResolver scriptResolver, DataSource dataSource) {
         this.dataSource = dataSource;
@@ -33,6 +34,7 @@ public class JDBCLockRepository implements LockRepository {
         this.findByHandleSQL = scriptResolver.resolveScript("lock.findByHandle");
         this.findByKeySQL = scriptResolver.resolveScript("lock.findByKey");
         this.removeByHandleSQL = scriptResolver.resolveScript("lock.removeByHandle");
+        this.insertParamsCount = countOccurrences(insertSQL, '?');
     }
 
     @Override
@@ -134,10 +136,17 @@ public class JDBCLockRepository implements LockRepository {
             ps.setString(2, lockRecord.lockHandleId());
 
             ps.setLong(3, lockRecord.expirationSeconds());
-            ps.setString(4, lockRecord.lockKey());
+
+            if (insertParamsCount == 4) {
+                ps.setString(4, lockRecord.lockKey());
+            }
 
             return ps.executeUpdate() == 1;
         }
+    }
+
+    private int countOccurrences(String str, char ch) {
+        return (int) str.chars().filter(c -> c == ch).count();
     }
 
     /** Delete SQL PreparedStatement. */

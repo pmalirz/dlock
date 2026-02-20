@@ -24,7 +24,7 @@ public class DLockConfig {
     public KeyLock keyLock(DataSource dataSource) {
         return new JDBCKeyLockBuilder()
                 .dataSource(dataSource)
-                .databaseType(DatabaseType.H2)
+                .databaseType(DatabaseType.H2) // or POSTGRESQL, ORACLE
                 .build();
     }
 }

@@ -63,7 +63,7 @@ public class DLockConfig {
     public KeyLock keyLock(DataSource dataSource) {
         return new JDBCKeyLockBuilder()
                 .dataSource(dataSource)
-                .databaseType(DatabaseType.H2) // or ORACLE
+                .databaseType(DatabaseType.H2) // or ORACLE, POSTGRESQL
                 .createDatabase(true) // Automatically creates the DLCK table
                 .build();
     }
@@ -199,7 +199,7 @@ When using the `KeyLock` API, keep the following constraints in mind:
 
 * [**dlock-api**](./dlock-api): Core interfaces (`KeyLock`, `LockHandle`).
 * [**dlock-core**](./dlock-core): Base implementation logic (expiration policies, utilities).
-* [**dlock-jdbc**](./dlock-jdbc): JDBC implementation (H2, Oracle support).
+* [**dlock-jdbc**](./dlock-jdbc): JDBC implementation (H2, Oracle, PostgreSQL support).
 * [**dlock-spring**](./dlock-spring): Spring integration (`@Lock` aspect).
 
 ```mermaid

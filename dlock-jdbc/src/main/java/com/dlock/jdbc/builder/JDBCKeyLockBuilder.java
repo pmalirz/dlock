@@ -42,6 +42,9 @@ public class JDBCKeyLockBuilder {
     }
 
     public JDBCKeyLockBuilder lockTableName(String lockTableName) {
+        if (lockTableName == null || !lockTableName.matches("^[a-zA-Z0-9_]+$")) {
+            throw new IllegalArgumentException("Table name must only contain alphanumeric characters and underscores");
+        }
         this.lockTableName = lockTableName;
         return this;
     }

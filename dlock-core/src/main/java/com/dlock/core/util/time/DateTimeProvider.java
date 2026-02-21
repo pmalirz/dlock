@@ -7,20 +7,18 @@ import java.time.LocalDateTime;
  *
  * @author Przemyslaw Malirz
  */
+@FunctionalInterface
 public interface DateTimeProvider {
 
     /**
      * Default singleton implementation.
      */
-    DateTimeProvider SYSTEM = new DateTimeProvider() {
-    };
+    DateTimeProvider SYSTEM = LocalDateTime::now;
 
     /**
      * Returns LocalDateTime.now(). It's not static so can be mocked / replaced by
      * any NOW provider.
      * The hardest part with NOW in unit tests is it's always different ;)
      */
-    default LocalDateTime now() {
-        return LocalDateTime.now();
-    }
+    LocalDateTime now();
 }

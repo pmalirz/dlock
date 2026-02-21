@@ -10,11 +10,12 @@ import java.util.List;
 
 /**
  * Database initiator creates required structures in the database.
- * It can be used concurrently so we have to make sure it works properly when
- * used a few times.
- * Anyway, mostly used for testing as production (and pre-production) regions
- * should not rely on
- * automatic DDL run at start.
+ * The execution is safe even if multiple instances try to initialize the database
+ * concurrently, as the DDL scripts use "IF NOT EXISTS" (or equivalent) clauses.
+ * <p>
+ * This class is primarily intended for testing and development environments.
+ * Production environments should ideally manage database schemas via migration tools
+ * (e.g., Flyway, Liquibase) rather than relying on application startup DDLs.
  *
  * @author Przemyslaw Malirz
  */

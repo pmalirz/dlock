@@ -31,6 +31,18 @@ public class LockAspect {
         this.keyLock = keyLock;
     }
 
+    /**
+     * Intercepts method execution to acquire a lock before proceeding.
+     * <p>
+     * If the lock is acquired, the method body is executed, and the lock is released afterward (in a finally block).
+     * If the lock cannot be acquired (e.g., already held by another process), the method execution is skipped,
+     * and {@code null} is returned.
+     *
+     * @param joinPoint the join point representing the method execution
+     * @return the result of the method execution if the lock is acquired, or {@code null} if the lock is not acquired
+     * @throws Throwable if the method execution throws an exception
+     * @throws IllegalStateException if the {@code @Lock} annotation is missing (should not happen due to pointcut)
+     */
     @Around("@annotation(com.dlock.spring.annotation.Lock)")
     public Object aroundLockedMethod(ProceedingJoinPoint joinPoint) throws Throwable {
 

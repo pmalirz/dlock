@@ -25,6 +25,7 @@ public class DLockConfig {
         return new JDBCKeyLockBuilder()
                 .dataSource(dataSource)
                 .databaseType(DatabaseType.H2) // or POSTGRESQL, ORACLE
+                .createDatabase(true) // Automatically creates the DLCK table
                 .build();
     }
 }

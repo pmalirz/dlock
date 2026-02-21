@@ -48,6 +48,7 @@ Unless you are building a custom integration, you will typically use this via th
 KeyLock keyLock = new JDBCKeyLockBuilder()
     .dataSource(myDataSource)
     .databaseType(DatabaseType.H2)
+    .createDatabase(true) // Automatically creates the DLCK table if not exists
     .build();
 ```
 

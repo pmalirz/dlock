@@ -20,14 +20,18 @@ public interface KeyLock {
      * Tries to acquire a lock and, if successful, executes the given action.
      * The lock is automatically released after the action completes.
      */
-    void tryLock(String lockKey, long expirationSeconds, Consumer<LockHandle> action);
+    default void tryLock(String lockKey, long expirationSeconds, Consumer<LockHandle> action) {
+        // ...
+    }
 
     /**
      * Tries to acquire a lock and, if successful, executes the given function.
      * The lock is automatically released after the function completes.
      * @return Optional<R> - Result of the function if lock acquired, empty if not.
      */
-    <R> Optional<R> tryLock(String lockKey, long expirationSeconds, Function<LockHandle, R> action);
+    default <R> Optional<R> tryLock(String lockKey, long expirationSeconds, Function<LockHandle, R> action) {
+        // ...
+    }
 
     /**
      * Releases the lock using the provided handle.

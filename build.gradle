@@ -117,7 +117,7 @@ subprojects {
         coordinates(project.group.toString(), project.name, project.version.toString())
         pom {
             name = "DLock - ${project.name}"
-            description = "Distributed lock for Java/Spring Built on JDBC"
+            description = "Distributed, repository-based lock for Java"
             inceptionYear = "2023"
             url = "https://github.com/pmalirz/dlock"
             licenses {

@@ -2,8 +2,10 @@ plugins {
     id 'java-library'
     id 'jacoco'
     id 'jacoco-report-aggregation'
-    id 'maven-publish'
+    id 'com.vanniktech.maven.publish' version '0.30.0'
 }
+
+project.group = 'io.github.pmalirz'
 
 repositories {
     mavenLocal()
@@ -32,9 +34,9 @@ subprojects {
     apply plugin: "java-library"
     apply plugin: "groovy"
     apply plugin: "jacoco"
-    apply plugin: 'maven-publish'
+    apply plugin: "com.vanniktech.maven.publish"
 
-    project.group = 'com.dlock'
+    project.group = 'io.github.pmalirz'
 
     java {
         toolchain {
@@ -109,6 +111,39 @@ subprojects {
                     "Implementation-Version": project.version,
                     "Implementation-Vendor": "Przemyslaw Malirz")
         }
+    }
+
+    mavenPublishing {
+        coordinates(project.group.toString(), project.name, project.version.toString())
+        pom {
+            name = "DLock - ${project.name}"
+            description = "Distributed lock for Java/Spring Built on JDBC"
+            inceptionYear = "2023"
+            url = "https://github.com/pmalirz/dlock"
+            licenses {
+                license {
+                    name = "The MIT License"
+                    url = "https://opensource.org/licenses/MIT"
+                }
+            }
+            developers {
+                developer {
+                    id = "pmalirz"
+                    name = "Przemyslaw Malirz"
+                    url = "https://github.com/pmalirz/"
+                }
+            }
+            scm {
+                url = "https://github.com/pmalirz/dlock"
+                connection = "scm:git:git://github.com/pmalirz/dlock.git"
+                developerConnection = "scm:git:ssh://git@github.com/pmalirz/dlock.git"
+            }
+        }
+        
+        // Publish to the new Sonatype Central Portal
+        publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
+        // Enable GPG signing
+        signAllPublications()
     }
 
 }

@@ -1,8 +1,8 @@
-package com.dlock;
+package io.github.pmalirz.dlock;
 
-import com.dlock.api.KeyLock;
-import com.dlock.jdbc.DatabaseType;
-import com.dlock.jdbc.builder.JDBCKeyLockBuilder;
+import io.github.pmalirz.dlock.api.KeyLock;
+import io.github.pmalirz.dlock.jdbc.DatabaseType;
+import io.github.pmalirz.dlock.jdbc.builder.JDBCKeyLockBuilder;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.h2.tools.Server;

@@ -60,7 +60,7 @@ configurations.jmh {
     archiveFileName  = "dlock-jdbc-all-${project.version}.jar"
     dependencies {
         exclude(dependency {
-            it.moduleGroup != 'com.dlock'
+            it.moduleGroup != 'io.github.pmalirz.dlock'
         })
     }
 }*/

@@ -1,4 +1,4 @@
-package com.dlock.jdbc.builder
+package io.github.pmalirz.dlock.jdbc.builder
 
 import spock.lang.Specification
 import spock.lang.Unroll

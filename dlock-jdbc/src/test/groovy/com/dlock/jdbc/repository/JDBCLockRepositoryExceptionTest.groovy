@@ -1,8 +1,8 @@
-package com.dlock.jdbc.repository
+package io.github.pmalirz.dlock.jdbc.repository
 
-import com.dlock.api.exception.LockException
-import com.dlock.core.model.WriteLockRecord
-import com.dlock.jdbc.tool.script.ScriptResolver
+import io.github.pmalirz.dlock.api.exception.LockException
+import io.github.pmalirz.dlock.core.model.WriteLockRecord
+import io.github.pmalirz.dlock.jdbc.tool.script.ScriptResolver
 import spock.lang.Specification
 
 import javax.sql.DataSource

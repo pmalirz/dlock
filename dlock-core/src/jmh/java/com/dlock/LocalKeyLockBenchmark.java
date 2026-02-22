@@ -1,7 +1,7 @@
-package com.dlock;
+package io.github.pmalirz.dlock;
 
-import com.dlock.core.SimpleLocalKeyLock;
-import com.dlock.api.LockHandle;
+import io.github.pmalirz.dlock.core.SimpleLocalKeyLock;
+import io.github.pmalirz.dlock.api.LockHandle;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 

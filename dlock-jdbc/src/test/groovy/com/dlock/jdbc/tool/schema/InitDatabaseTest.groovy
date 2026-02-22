@@ -1,6 +1,6 @@
-package com.dlock.jdbc.tool.schema
+package io.github.pmalirz.dlock.jdbc.tool.schema
 
-import com.dlock.jdbc.tool.script.ScriptResolver
+import io.github.pmalirz.dlock.jdbc.tool.script.ScriptResolver
 import spock.lang.Specification
 
 import javax.sql.DataSource

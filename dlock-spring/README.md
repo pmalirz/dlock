@@ -13,11 +13,11 @@ This module provides Spring Framework integration for **dlock** via the `@Lock` 
 To use `@Lock`, you must configure:
 
 1. A `KeyLock` bean (the lock implementation).
-2. Enable component scanning for `com.dlock` (so the Aspect is detected).
+2. Enable component scanning for `io.github.pmalirz.dlock` (so the Aspect is detected).
 
 ```java
 @Configuration
-@ComponentScan("com.dlock")
+@ComponentScan("io.github.pmalirz.dlock")
 public class DLockConfig {
 
     @Bean

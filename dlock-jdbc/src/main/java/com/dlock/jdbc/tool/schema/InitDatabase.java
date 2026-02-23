@@ -4,6 +4,7 @@ import com.dlock.jdbc.tool.script.ScriptResolver;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
@@ -29,10 +30,12 @@ public class InitDatabase {
         this.dataSource = dataSource;
     }
 
-    public synchronized void createDatabase() {
-        List<String> ddls = scriptResolver.resolveDDLScripts();
-
+    public void createDatabase() {
         try (Connection conn = dataSource.getConnection()) {
+            if (tableExists(conn)) {
+                return;
+            }
+            List<String> ddls = scriptResolver.resolveDDLScripts();
             for (String ddl : ddls) {
                 if (ddl.isBlank())
                     continue;
@@ -42,6 +45,12 @@ public class InitDatabase {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to initialize database", e);
+        }
+    }
+
+    private boolean tableExists(Connection conn) throws SQLException {
+        try (ResultSet rs = conn.getMetaData().getTables(null, null, scriptResolver.getTableName(), null)) {
+            return rs.next();
         }
     }
 }

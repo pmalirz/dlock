@@ -50,10 +50,7 @@ public class SimpleKeyLock implements KeyLock {
 
     @Override
     public void unlock(LockHandle lockHandle) {
-        ReadLockRecord lock = lockRepository.findLockByHandleId(lockHandle.handleId());
-        if (lock != null) {
-            breakLock(lock);
-        }
+        lockRepository.removeLock(lockHandle.handleId());
     }
 
     private Optional<LockHandle> createNewLock(String lockKey, long expirationSeconds) {

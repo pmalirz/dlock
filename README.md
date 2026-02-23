@@ -31,22 +31,22 @@ Add the following to your `build.gradle`:
 
 ```kotlin
 // build.gradle.kts
-implementation("com.dlock:dlock-spring:3.0.0-SNAPSHOT")
-implementation("com.dlock:dlock-jdbc:3.0.0-SNAPSHOT")
+implementation("io.github.pmalirz:dlock-spring:3.0.0")
+implementation("io.github.pmalirz:dlock-jdbc:3.0.0")
 ```
 
 Or `pom.xml`:
 
 ```xml
 <dependency>
-    <groupId>com.dlock</groupId>
+    <groupId>io.github.pmalirz</groupId>
     <artifactId>dlock-spring</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0</version>
 </dependency>
 <dependency>
-    <groupId>com.dlock</groupId>
+    <groupId>io.github.pmalirz</groupId>
     <artifactId>dlock-jdbc</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0</version>
 </dependency>
 ```
 
@@ -56,7 +56,7 @@ Enable the aspect and configure the `KeyLock` bean.
 
 ```java
 @Configuration
-@ComponentScan("com.dlock") // Scan for LockAspect
+@ComponentScan("io.github.pmalirz.dlock") // Scan for LockAspect
 public class DLockConfig {
 
     @Bean

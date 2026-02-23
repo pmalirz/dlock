@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
     id 'jacoco'
     id 'jacoco-report-aggregation'
-    id 'com.vanniktech.maven.publish' version '0.30.0'
+    id 'com.vanniktech.maven.publish' version '0.36.0'
 }
 
 project.group = 'io.github.pmalirz'
@@ -141,7 +141,7 @@ subprojects {
         }
         
         // Publish to the new Sonatype Central Portal
-        publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
+        publishToMavenCentral()
         // Enable GPG signing
         signAllPublications()
     }

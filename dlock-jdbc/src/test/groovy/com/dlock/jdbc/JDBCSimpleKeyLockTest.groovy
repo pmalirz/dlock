@@ -1,10 +1,10 @@
-package com.dlock.jdbc
+package io.github.pmalirz.dlock.jdbc
 
-import com.dlock.api.LockHandle
-import com.dlock.core.SimpleKeyLock
-import com.dlock.jdbc.builder.JDBCKeyLockBuilder
-import com.dlock.jdbc.repository.JDBCLockRepository
-import com.dlock.jdbc.tool.script.ScriptResolver
+import io.github.pmalirz.dlock.api.LockHandle
+import io.github.pmalirz.dlock.core.SimpleKeyLock
+import io.github.pmalirz.dlock.jdbc.builder.JDBCKeyLockBuilder
+import io.github.pmalirz.dlock.jdbc.repository.JDBCLockRepository
+import io.github.pmalirz.dlock.jdbc.tool.script.ScriptResolver
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import spock.lang.Specification

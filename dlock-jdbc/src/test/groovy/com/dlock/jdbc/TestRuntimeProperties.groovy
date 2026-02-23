@@ -1,4 +1,4 @@
-package com.dlock.jdbc
+package io.github.pmalirz.dlock.jdbc
 
 /**
  * Unit test runtime parameters.

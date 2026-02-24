@@ -99,9 +99,9 @@ public class JDBCLockRepository implements LockRepository {
                 return null;
             }
 
-            String lockKey = resultSet.getString(1);
-            Timestamp lockCreatedTime = resultSet.getTimestamp(3);
-            long lockExpirationSeconds = resultSet.getLong(4);
+            String lockKey = resultSet.getString("LCK_KEY");
+            Timestamp lockCreatedTime = resultSet.getTimestamp("CREATED_TIME");
+            long lockExpirationSeconds = resultSet.getLong("EXPIRE_SEC");
             Timestamp currentTime = resultSet.getTimestamp(5);
             return new ReadLockRecord(lockKey, lockHandleId, lockCreatedTime.toLocalDateTime(), lockExpirationSeconds,
                     currentTime.toLocalDateTime());
@@ -120,9 +120,9 @@ public class JDBCLockRepository implements LockRepository {
                 return null;
             }
 
-            String lockHandleId = resultSet.getString(2);
-            Timestamp lockCreatedTime = resultSet.getTimestamp(3);
-            long lockExpirationSeconds = resultSet.getLong(4);
+            String lockHandleId = resultSet.getString("LCK_HNDL_ID");
+            Timestamp lockCreatedTime = resultSet.getTimestamp("CREATED_TIME");
+            long lockExpirationSeconds = resultSet.getLong("EXPIRE_SEC");
             Timestamp currentTime = resultSet.getTimestamp(5);
             return new ReadLockRecord(lockKey, lockHandleId, lockCreatedTime.toLocalDateTime(), lockExpirationSeconds,
                     currentTime.toLocalDateTime());
@@ -145,7 +145,7 @@ public class JDBCLockRepository implements LockRepository {
         }
     }
 
-    private int countOccurrences(String str, char ch) {
+    private static int countOccurrences(String str, char ch) {
         return (int) str.chars().filter(c -> c == ch).count();
     }
 

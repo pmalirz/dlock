@@ -75,6 +75,9 @@ public class LockAspect {
                 keyLock.unlock(lock.get());
             }
         } else {
+            if (targetMethod.getReturnType() == Optional.class) {
+                return Optional.empty();
+            }
             return null;
         }
     }

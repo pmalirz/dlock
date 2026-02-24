@@ -55,6 +55,24 @@ class LockAspectTest extends Specification {
         result == null
     }
 
+    def "should return Optional.empty when lock not acquired for Optional return type"() {
+        given:
+        keyLock.tryLock("test-key", 10) >> Optional.empty()
+
+        def method = TestBean.class.getMethod("lockedMethodWithOptional")
+        signature.getMethod() >> method
+        joinPoint.getSignature() >> signature
+        joinPoint.getTarget() >> new TestBean()
+        joinPoint.getArgs() >> []
+
+        when:
+        def result = lockAspect.aroundLockedMethod(joinPoint)
+
+        then:
+        0 * joinPoint.proceed()
+        result == Optional.empty()
+    }
+
     def "should handle null LockKeyParam"() {
         given:
         def lockHandle = new LockHandle("handle1")
@@ -79,6 +97,11 @@ class LockAspectTest extends Specification {
         @Lock(key = "test-key", expirationSeconds = 10)
         String lockedMethod() {
             return "result"
+        }
+
+        @Lock(key = "test-key", expirationSeconds = 10)
+        Optional<String> lockedMethodWithOptional() {
+            return Optional.of("result")
         }
 
         @Lock(key = "test-key-{param}", expirationSeconds = 10)

@@ -5,6 +5,7 @@ This module contains the core implementation logic for **dlock**, independent of
 ## Components
 
 * **SimpleKeyLock**: The main implementation of `KeyLock` interface. It orchestrates the locking process using a `LockRepository`.
+* **SimpleLocalKeyLock**: A convenient subclass of `SimpleKeyLock` pre-configured with `LocalLockRepository` (in-memory) and default settings. Useful for testing or single-instance applications.
 * **LockRepository**: Interface for storage backends (e.g., `JDBCLockRepository` implements this).
 * **LockExpirationPolicy**: Strategy for handling lock expiration. Defaults to `LocalLockExpirationPolicy`.
 * **LockHandleIdGenerator**: Strategy for generating unique lock handles. Defaults to UUID.

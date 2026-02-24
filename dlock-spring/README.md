@@ -55,6 +55,8 @@ public void updateUser(@LockKeyParam("userId") String userId, UserData data) {
 
 ## Important Notes
 
-1. **Return Values**: If the lock is acquired, the method executes and returns its value. If the lock is **not** acquired, the execution is skipped and `null` is returned. Callers should be prepared to handle `null`.
+1. **Return Values**: If the lock is acquired, the method executes and returns its value. If the lock is **not** acquired, the execution is skipped.
+   - If the method returns `Optional<T>`, `Optional.empty()` is returned.
+   - Otherwise, `null` is returned. Callers should be prepared to handle `null`.
 2. **Skipping**: If the lock is not acquired, the method body is **not executed**.
 3. **Self-Invocation**: Due to Spring AOP proxy mechanism, calling an `@Lock` method from within the same class will bypass the aspect (and the lock).

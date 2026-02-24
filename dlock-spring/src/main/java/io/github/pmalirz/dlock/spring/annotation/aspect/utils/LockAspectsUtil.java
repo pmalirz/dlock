@@ -32,7 +32,7 @@ public class LockAspectsUtil {
 
         if (method.getDeclaringClass().isInterface()) {
             try {
-                return joinPoint.getTarget().getClass().getDeclaredMethod(joinPoint.getSignature().getName(),
+                return joinPoint.getTarget().getClass().getMethod(joinPoint.getSignature().getName(),
                         method.getParameterTypes());
             } catch (NoSuchMethodException e) {
                 return method;

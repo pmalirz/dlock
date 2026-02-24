@@ -36,12 +36,17 @@ public class SimpleKeyLock implements KeyLock {
 
     @Override
     public Optional<LockHandle> tryLock(String lockKey, long expirationSeconds) {
+        // Optimistic approach: try to create a new lock first
+        Optional<LockHandle> newLock = createNewLock(lockKey, expirationSeconds);
+        if (newLock.isPresent()) {
+            return newLock;
+        }
+
+        // If failed, check if the existing lock is expired
         ReadLockRecord currentLockRecord = lockRepository.findLockByKey(lockKey);
 
-        if (expiredOrNotExists(currentLockRecord)) {
-            if (currentLockRecord != null) {
-                breakLock(currentLockRecord);
-            }
+        if (currentLockRecord != null && expired(currentLockRecord)) {
+            breakLock(currentLockRecord);
             return createNewLock(lockKey, expirationSeconds);
         } else {
             return Optional.empty();
@@ -50,10 +55,7 @@ public class SimpleKeyLock implements KeyLock {
 
     @Override
     public void unlock(LockHandle lockHandle) {
-        ReadLockRecord lock = lockRepository.findLockByHandleId(lockHandle.handleId());
-        if (lock != null) {
-            breakLock(lock);
-        }
+        lockRepository.removeLock(lockHandle.handleId());
     }
 
     private Optional<LockHandle> createNewLock(String lockKey, long expirationSeconds) {
@@ -69,10 +71,6 @@ public class SimpleKeyLock implements KeyLock {
     private WriteLockRecord createLockRecord(String lockKey, long expirationSeconds) {
         String lockHandleId = lockHandleIdGenerator.generate();
         return new WriteLockRecord(lockKey, lockHandleId, dateTimeProvider.now(), expirationSeconds);
-    }
-
-    private boolean expiredOrNotExists(ReadLockRecord currentLock) {
-        return currentLock == null || expired(currentLock);
     }
 
     private boolean expired(ReadLockRecord readLockRecord) {

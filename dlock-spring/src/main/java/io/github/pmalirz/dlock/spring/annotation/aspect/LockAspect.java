@@ -61,11 +61,7 @@ public class LockAspect {
 
         List<LockAspectsUtil.LockKeyParameter> parameters = LockAspectsUtil.getLockKeyMethodParameters(targetMethod);
 
-        for (LockAspectsUtil.LockKeyParameter parameter : parameters) {
-            Object arg = joinPoint.getArgs()[parameter.index()];
-            String argValue = String.valueOf(arg);
-            lockKeyValue = lockKeyValue.replace("{" + parameter.name() + "}", argValue);
-        }
+        lockKeyValue = replaceKeyParameters(lockKeyValue, joinPoint, parameters);
 
         Optional<LockHandle> lock = keyLock.tryLock(lockKeyValue, lockAnnotation.expirationSeconds());
         if (lock.isPresent()) {
@@ -80,6 +76,16 @@ public class LockAspect {
             }
             return null;
         }
+    }
+
+    private String replaceKeyParameters(String lockKeyValue, ProceedingJoinPoint joinPoint, List<LockAspectsUtil.LockKeyParameter> parameters) {
+        String result = lockKeyValue;
+        for (LockAspectsUtil.LockKeyParameter parameter : parameters) {
+            Object arg = joinPoint.getArgs()[parameter.index()];
+            String argValue = String.valueOf(arg);
+            result = result.replace("{" + parameter.name() + "}", argValue);
+        }
+        return result;
     }
 
 }

@@ -21,6 +21,18 @@ import java.sql.Timestamp;
  */
 public class JDBCLockRepository implements LockRepository {
 
+    /**
+     * The index of the column containing the current database timestamp.
+     * This relies on the SQL query structure where CURRENT_TIMESTAMP is selected as the 5th column.
+     */
+    private static final int TIMESTAMP_COLUMN_INDEX = 5;
+
+    /**
+     * Number of parameters in the insert statement when using "WHERE NOT EXISTS" clause (e.g. H2).
+     * In this case, the lock key is used twice: once for insertion and once for the existence check.
+     */
+    private static final int INSERT_PARAMS_COUNT_WITH_CHECK = 4;
+
     private final DataSource dataSource;
     private final String insertSQL;
     private final String findByHandleSQL;
@@ -102,7 +114,7 @@ public class JDBCLockRepository implements LockRepository {
             String lockKey = resultSet.getString("LCK_KEY");
             Timestamp lockCreatedTime = resultSet.getTimestamp("CREATED_TIME");
             long lockExpirationSeconds = resultSet.getLong("EXPIRE_SEC");
-            Timestamp currentTime = resultSet.getTimestamp(5);
+            Timestamp currentTime = resultSet.getTimestamp(TIMESTAMP_COLUMN_INDEX);
             return new ReadLockRecord(lockKey, lockHandleId, lockCreatedTime.toLocalDateTime(), lockExpirationSeconds,
                     currentTime.toLocalDateTime());
         }
@@ -123,7 +135,7 @@ public class JDBCLockRepository implements LockRepository {
             String lockHandleId = resultSet.getString("LCK_HNDL_ID");
             Timestamp lockCreatedTime = resultSet.getTimestamp("CREATED_TIME");
             long lockExpirationSeconds = resultSet.getLong("EXPIRE_SEC");
-            Timestamp currentTime = resultSet.getTimestamp(5);
+            Timestamp currentTime = resultSet.getTimestamp(TIMESTAMP_COLUMN_INDEX);
             return new ReadLockRecord(lockKey, lockHandleId, lockCreatedTime.toLocalDateTime(), lockExpirationSeconds,
                     currentTime.toLocalDateTime());
         }
@@ -137,7 +149,9 @@ public class JDBCLockRepository implements LockRepository {
 
             ps.setLong(3, lockRecord.expirationSeconds());
 
-            if (insertParamsCount == 4) {
+            // If the SQL requires the lock key to be passed twice (e.g. for "WHERE NOT EXISTS" check),
+            // we set the 4th parameter.
+            if (insertParamsCount == INSERT_PARAMS_COUNT_WITH_CHECK) {
                 ps.setString(4, lockRecord.lockKey());
             }
 

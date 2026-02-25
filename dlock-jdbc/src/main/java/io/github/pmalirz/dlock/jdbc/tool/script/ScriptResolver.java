@@ -32,13 +32,12 @@ public class ScriptResolver {
     }
 
     private void init() {
-        try (InputStream inputStream = this.getClass().getClassLoader()
-                .getResourceAsStream("db/" + databaseType + "-sql.properties")) {
+        String resourceName = "db/" + databaseType + "-sql.properties";
+        try (InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(resourceName)) {
             if (inputStream == null) {
-                throw new IllegalStateException("db/" + databaseType + "-sql.properties not found");
+                throw new IllegalStateException(resourceName + " not found");
             }
-            String rawContent = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                    .lines().collect(Collectors.joining("\n"));
+            String rawContent = readStream(inputStream);
             String fileContent = rawContent.replace(tableNamePlaceholder, tableName);
             sqlResource.load(new StringReader(fileContent));
         } catch (IOException e) {
@@ -55,12 +54,16 @@ public class ScriptResolver {
             if (inputStream == null) {
                 return Collections.emptyList();
             }
-            String initScriptTemplate = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                    .lines().collect(Collectors.joining("\n"));
+            String initScriptTemplate = readStream(inputStream);
             String entireScriptContent = initScriptTemplate.replace(tableNamePlaceholder, tableName);
             return List.of(entireScriptContent.split(";"));
         } catch (IOException e) {
             throw new RuntimeException("Failed to load DDL scripts", e);
         }
+    }
+
+    private String readStream(InputStream inputStream) {
+        return new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+                .lines().collect(Collectors.joining("\n"));
     }
 }

@@ -54,5 +54,11 @@ public class MyCustomRepository implements LockRepository {
     }
 }
 
-SimpleKeyLock myLock = new SimpleKeyLock(new MyCustomRepository(), ...);
+// 2. Instantiate SimpleKeyLock with your repository and default strategies
+SimpleKeyLock myLock = new SimpleKeyLock(
+    new MyCustomRepository(),
+    new LockHandleUUIDIdGenerator(),
+    new LocalLockExpirationPolicy(),
+    DateTimeProvider.SYSTEM
+);
 ```

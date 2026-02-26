@@ -22,12 +22,6 @@ import java.sql.Timestamp;
 public class JDBCLockRepository implements LockRepository {
 
     /**
-     * The index of the column containing the current database timestamp.
-     * This relies on the SQL query structure where CURRENT_TIMESTAMP is selected as the 5th column.
-     */
-    private static final int TIMESTAMP_COLUMN_INDEX = 5;
-
-    /**
      * Number of parameters in the insert statement when using "WHERE NOT EXISTS" clause (e.g. H2).
      * In this case, the lock key is used twice: once for insertion and once for the existence check.
      */
@@ -114,7 +108,7 @@ public class JDBCLockRepository implements LockRepository {
             String lockKey = resultSet.getString("LCK_KEY");
             Timestamp lockCreatedTime = resultSet.getTimestamp("CREATED_TIME");
             long lockExpirationSeconds = resultSet.getLong("EXPIRE_SEC");
-            Timestamp currentTime = resultSet.getTimestamp(TIMESTAMP_COLUMN_INDEX);
+            Timestamp currentTime = resultSet.getTimestamp("DB_TIME");
             return new ReadLockRecord(lockKey, lockHandleId, lockCreatedTime.toLocalDateTime(), lockExpirationSeconds,
                     currentTime.toLocalDateTime());
         }
@@ -135,7 +129,7 @@ public class JDBCLockRepository implements LockRepository {
             String lockHandleId = resultSet.getString("LCK_HNDL_ID");
             Timestamp lockCreatedTime = resultSet.getTimestamp("CREATED_TIME");
             long lockExpirationSeconds = resultSet.getLong("EXPIRE_SEC");
-            Timestamp currentTime = resultSet.getTimestamp(TIMESTAMP_COLUMN_INDEX);
+            Timestamp currentTime = resultSet.getTimestamp("DB_TIME");
             return new ReadLockRecord(lockKey, lockHandleId, lockCreatedTime.toLocalDateTime(), lockExpirationSeconds,
                     currentTime.toLocalDateTime());
         }

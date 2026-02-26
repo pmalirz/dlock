@@ -38,10 +38,11 @@ public interface KeyLock {
     default void tryLock(String lockKey, long expirationSeconds, Consumer<LockHandle> action) {
         Optional<LockHandle> lock = tryLock(lockKey, expirationSeconds);
         if (lock.isPresent()) {
+            LockHandle lockHandle = lock.get();
             try {
-                action.accept(lock.get());
+                action.accept(lockHandle);
             } finally {
-                unlock(lock.get());
+                unlock(lockHandle);
             }
         }
     }
@@ -64,10 +65,11 @@ public interface KeyLock {
     default <R> Optional<R> tryLock(String lockKey, long expirationSeconds, Function<LockHandle, R> action) {
         Optional<LockHandle> lock = tryLock(lockKey, expirationSeconds);
         if (lock.isPresent()) {
+            LockHandle lockHandle = lock.get();
             try {
-                return Optional.ofNullable(action.apply(lock.get()));
+                return Optional.ofNullable(action.apply(lockHandle));
             } finally {
-                unlock(lock.get());
+                unlock(lockHandle);
             }
         } else {
             return Optional.empty();

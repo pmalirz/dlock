@@ -2,6 +2,7 @@ package io.github.pmalirz.dlock.spring.annotation.aspect;
 
 import io.github.pmalirz.dlock.api.KeyLock;
 import io.github.pmalirz.dlock.api.LockHandle;
+import io.github.pmalirz.dlock.api.exception.LockException;
 import io.github.pmalirz.dlock.spring.annotation.Lock;
 import io.github.pmalirz.dlock.spring.annotation.aspect.utils.LockAspectsUtil;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -73,6 +74,11 @@ public class LockAspect {
         } else {
             if (targetMethod.getReturnType() == Optional.class) {
                 return Optional.empty();
+            }
+
+            if (targetMethod.getReturnType().isPrimitive() && targetMethod.getReturnType() != void.class) {
+                throw new LockException("Cannot return null for primitive return type " + targetMethod.getReturnType()
+                        + " when lock is not acquired.");
             }
             return null;
         }

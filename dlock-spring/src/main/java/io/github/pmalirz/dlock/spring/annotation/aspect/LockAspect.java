@@ -74,6 +74,9 @@ public class LockAspect {
             if (targetMethod.getReturnType() == Optional.class) {
                 return Optional.empty();
             }
+            if (targetMethod.getReturnType().isPrimitive() && targetMethod.getReturnType() != void.class) {
+                throw new io.github.pmalirz.dlock.api.exception.LockException("Lock could not be acquired for method with primitive return type");
+            }
             return null;
         }
     }

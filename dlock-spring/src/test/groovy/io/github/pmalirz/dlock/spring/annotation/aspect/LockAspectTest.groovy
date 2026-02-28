@@ -93,6 +93,40 @@ class LockAspectTest extends Specification {
         result == "result"
     }
 
+    def "should throw LockException when lock not acquired for primitive return type"() {
+        given:
+        keyLock.tryLock("test-key", 10) >> Optional.empty()
+
+        def method = TestBean.class.getMethod("lockedMethodWithPrimitive")
+        signature.getMethod() >> method
+        joinPoint.getSignature() >> signature
+        joinPoint.getTarget() >> new TestBean()
+        joinPoint.getArgs() >> []
+
+        when:
+        lockAspect.aroundLockedMethod(joinPoint)
+
+        then:
+        thrown(io.github.pmalirz.dlock.api.exception.LockException)
+    }
+
+    def "should return null when lock not acquired for void return type"() {
+        given:
+        keyLock.tryLock("test-key", 10) >> Optional.empty()
+
+        def method = TestBean.class.getMethod("lockedMethodWithVoid")
+        signature.getMethod() >> method
+        joinPoint.getSignature() >> signature
+        joinPoint.getTarget() >> new TestBean()
+        joinPoint.getArgs() >> []
+
+        when:
+        def result = lockAspect.aroundLockedMethod(joinPoint)
+
+        then:
+        result == null
+    }
+
     static class TestBean {
         @Lock(key = "test-key", expirationSeconds = 10)
         String lockedMethod() {
@@ -107,6 +141,15 @@ class LockAspectTest extends Specification {
         @Lock(key = "test-key-{param}", expirationSeconds = 10)
         String lockedMethodWithParam(@LockKeyParam("param") String param) {
             return "result"
+        }
+
+        @Lock(key = "test-key", expirationSeconds = 10)
+        int lockedMethodWithPrimitive() {
+            return 1
+        }
+
+        @Lock(key = "test-key", expirationSeconds = 10)
+        void lockedMethodWithVoid() {
         }
     }
 }

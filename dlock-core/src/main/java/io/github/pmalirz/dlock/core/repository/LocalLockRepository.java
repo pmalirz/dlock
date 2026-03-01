@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class LocalLockRepository implements LockRepository {
 
-    private final ConcurrentMap<String, WriteLockRecord> NAMED_LOCK = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, WriteLockRecord> namedLocks = new ConcurrentHashMap<>();
     private final DateTimeProvider dateTimeProvider;
 
     public LocalLockRepository(DateTimeProvider dateTimeProvider) {
@@ -25,12 +25,12 @@ public class LocalLockRepository implements LockRepository {
 
     @Override
     public boolean createLock(WriteLockRecord lockRecord) {
-        return NAMED_LOCK.putIfAbsent(lockRecord.lockKey(), lockRecord) == null;
+        return namedLocks.putIfAbsent(lockRecord.lockKey(), lockRecord) == null;
     }
 
     @Override
     public ReadLockRecord findLockByHandleId(String lockHandleId) {
-        return NAMED_LOCK.values().stream()
+        return namedLocks.values().stream()
                 .filter(lock -> lock.lockHandleId().equals(lockHandleId))
                 .findFirst()
                 .map(this::toReadLockRecord)
@@ -39,7 +39,7 @@ public class LocalLockRepository implements LockRepository {
 
     @Override
     public ReadLockRecord findLockByKey(String lockKey) {
-        WriteLockRecord lockRecord = NAMED_LOCK.get(lockKey);
+        WriteLockRecord lockRecord = namedLocks.get(lockKey);
         if (lockRecord != null) {
             return toReadLockRecord(lockRecord);
         }
@@ -48,7 +48,7 @@ public class LocalLockRepository implements LockRepository {
 
     @Override
     public void removeLock(String lockHandleId) {
-        NAMED_LOCK.values().removeIf(lock -> lock.lockHandleId().equals(lockHandleId));
+        namedLocks.values().removeIf(lock -> lock.lockHandleId().equals(lockHandleId));
     }
 
     private ReadLockRecord toReadLockRecord(WriteLockRecord writeLockRecord) {

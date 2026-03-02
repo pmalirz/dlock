@@ -1,6 +1,7 @@
 package io.github.pmalirz.dlock.jdbc.builder;
 
 import io.github.pmalirz.dlock.core.SimpleKeyLock;
+import io.github.pmalirz.dlock.api.KeyLock;
 import io.github.pmalirz.dlock.core.expiration.LocalLockExpirationPolicy;
 import io.github.pmalirz.dlock.core.expiration.LockExpirationPolicy;
 import io.github.pmalirz.dlock.core.handle.LockHandleIdGenerator;
@@ -69,7 +70,7 @@ public class JDBCKeyLockBuilder {
         return this;
     }
 
-    public SimpleKeyLock build() {
+    public KeyLock build() {
         if (dataSource == null) {
             throw new IllegalStateException("DataSource is required");
         }

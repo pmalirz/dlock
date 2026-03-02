@@ -45,6 +45,10 @@ Result: exactly one process wins. No transaction wrapping is required — the sa
 Unless you are building a custom integration, you will typically use this via the `JDBCKeyLockBuilder`.
 
 ```java
+import io.github.pmalirz.dlock.api.KeyLock;
+import io.github.pmalirz.dlock.jdbc.DatabaseType;
+import io.github.pmalirz.dlock.jdbc.builder.JDBCKeyLockBuilder;
+
 KeyLock keyLock = new JDBCKeyLockBuilder()
     .dataSource(myDataSource)
     .databaseType(DatabaseType.H2)

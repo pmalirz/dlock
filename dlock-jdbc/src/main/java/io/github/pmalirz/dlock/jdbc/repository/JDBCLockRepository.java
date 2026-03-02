@@ -45,18 +45,23 @@ public class JDBCLockRepository implements LockRepository {
 
     @Override
     public boolean createLock(WriteLockRecord lockRecord) {
-        try (Connection connection = dataSource.getConnection()) {
+        Connection connection = null;
+        try {
+            connection = dataSource.getConnection();
             boolean recordCreated = executeInsert(connection, lockRecord);
             if (recordCreated) {
                 commit(connection);
             }
             return recordCreated;
         } catch (SQLException e) {
+            rollback(connection);
             // SQLState class 23 = integrity constraint violation (unique key, etc.)
             if (e.getSQLState() != null && e.getSQLState().startsWith("23")) {
                 return false;
             }
             throw new LockException("Error while creating lock: " + lockRecord, e);
+        } finally {
+            close(connection);
         }
     }
 
@@ -80,13 +85,18 @@ public class JDBCLockRepository implements LockRepository {
 
     @Override
     public void removeLock(String lockHandleId) {
-        try (Connection connection = dataSource.getConnection()) {
+        Connection connection = null;
+        try {
+            connection = dataSource.getConnection();
             boolean recordRemoved = executeRemove(connection, lockHandleId);
             if (recordRemoved) {
                 commit(connection);
             }
         } catch (SQLException e) {
+            rollback(connection);
             throw new LockException("Error while removing lock: " + lockHandleId, e);
+        } finally {
+            close(connection);
         }
     }
 
@@ -168,6 +178,28 @@ public class JDBCLockRepository implements LockRepository {
     private void commit(Connection connection) throws SQLException {
         if (!connection.getAutoCommit()) {
             connection.commit();
+        }
+    }
+
+    private void rollback(Connection connection) {
+        if (connection != null) {
+            try {
+                if (!connection.getAutoCommit()) {
+                    connection.rollback();
+                }
+            } catch (SQLException e) {
+                // Ignore rollback exception
+            }
+        }
+    }
+
+    private void close(Connection connection) {
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                // Ignore close exception
+            }
         }
     }
 

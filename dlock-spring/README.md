@@ -16,6 +16,14 @@ To use `@Lock`, you must configure:
 2. Enable component scanning for `io.github.pmalirz.dlock` (so the Aspect is detected).
 
 ```java
+import io.github.pmalirz.dlock.api.KeyLock;
+import io.github.pmalirz.dlock.jdbc.DatabaseType;
+import io.github.pmalirz.dlock.jdbc.builder.JDBCKeyLockBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import javax.sql.DataSource;
+
 @Configuration
 @ComponentScan("io.github.pmalirz.dlock")
 public class DLockConfig {
@@ -36,6 +44,8 @@ public class DLockConfig {
 ### Basic Usage
 
 ```java
+import io.github.pmalirz.dlock.spring.annotation.Lock;
+
 @Lock(key = "daily-report", expirationSeconds = 300)
 public void generateDailyReport() {
     // This runs only if "daily-report" lock is acquired.
@@ -47,6 +57,9 @@ public void generateDailyReport() {
 Use `@LockKeyParam` to include method arguments in the lock key.
 
 ```java
+import io.github.pmalirz.dlock.spring.annotation.Lock;
+import io.github.pmalirz.dlock.spring.annotation.LockKeyParam;
+
 @Lock(key = "user-update-{userId}", expirationSeconds = 60)
 public void updateUser(@LockKeyParam("userId") String userId, UserData data) {
     // Lock key will be e.g., "user-update-12345"
@@ -57,7 +70,7 @@ public void updateUser(@LockKeyParam("userId") String userId, UserData data) {
 
 1. **Return Values**: If the lock is acquired, the method executes and returns its value. If the lock is **not** acquired, the execution is skipped.
    - If the method returns `Optional<T>`, `Optional.empty()` is returned.
-   - If the method returns a primitive type (except `void`), a `LockException` is thrown because `null` cannot be returned.
+   - If the method returns a primitive type (except `void`), a `io.github.pmalirz.dlock.api.exception.LockException` is thrown because `null` cannot be returned.
    - Otherwise, `null` is returned. Callers should be prepared to handle `null`.
 2. **Skipping**: If the lock is not acquired, the method body is **not executed**.
 3. **Self-Invocation**: Due to Spring AOP proxy mechanism, calling an `@Lock` method from within the same class will bypass the aspect (and the lock).

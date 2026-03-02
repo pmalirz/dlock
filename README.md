@@ -55,6 +55,14 @@ Or `pom.xml`:
 Enable the aspect and configure the `KeyLock` bean.
 
 ```java
+import io.github.pmalirz.dlock.api.KeyLock;
+import io.github.pmalirz.dlock.jdbc.DatabaseType;
+import io.github.pmalirz.dlock.jdbc.builder.JDBCKeyLockBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import javax.sql.DataSource;
+
 @Configuration
 @ComponentScan("io.github.pmalirz.dlock") // Scan for LockAspect
 public class DLockConfig {
@@ -82,6 +90,10 @@ Annotate your methods with `@Lock`.
 * If the method returns a value, the caller must handle `null` or exceptions in case of lock failure.
 
 ```java
+import io.github.pmalirz.dlock.spring.annotation.Lock;
+import io.github.pmalirz.dlock.spring.annotation.LockKeyParam;
+import org.springframework.stereotype.Service;
+
 @Service
 public class InvoiceService {
 
@@ -102,6 +114,12 @@ You can also use the API directly without Spring.
 ### Using `KeyLock` Interface
 
 ```java
+import io.github.pmalirz.dlock.api.KeyLock;
+import io.github.pmalirz.dlock.api.LockHandle;
+import io.github.pmalirz.dlock.jdbc.DatabaseType;
+import io.github.pmalirz.dlock.jdbc.builder.JDBCKeyLockBuilder;
+import java.util.Optional;
+
 // 1. Initialize KeyLock (singleton)
 KeyLock keyLock = new JDBCKeyLockBuilder()
         .dataSource(dataSource)

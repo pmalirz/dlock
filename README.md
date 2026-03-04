@@ -192,8 +192,8 @@ sequenceDiagram
 
 When using the `KeyLock` API, keep the following constraints in mind:
 
-* **`lockKey`** must be a non-blank string, up to 1000 characters (the database column limit).
-* **`expirationSeconds`** must be greater than 0.
+* **`lockKey`** must be a non-blank string, up to 1000 characters (the database column limit). If these constraints are violated, an `IllegalArgumentException` is thrown.
+* **`expirationSeconds`** must be greater than 0. If violated, an `IllegalArgumentException` is thrown.
 * **Lock keys should be descriptive and scoped** (e.g., `"/invoice/{id}"`) to avoid unintended collisions.
 
 ## Project Structure

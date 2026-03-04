@@ -64,4 +64,23 @@ public class LockAspectsUtil {
         return result;
     }
 
+    /**
+     * Returns all the method parameters using parameter names derived via reflection.
+     * Useful as a fallback when @LockKeyParam is not present, assuming the code is compiled with -parameters.
+     *
+     * @return List of parameters info
+     */
+    public static List<LockKeyParameter> getReflectionMethodParameters(Method method) {
+        List<LockKeyParameter> result = new ArrayList<>();
+        Parameter[] parameters = method.getParameters();
+        for (int i = 0; i < parameters.length; i++) {
+            Parameter parameter = parameters[i];
+            // Only add if parameter name is actually available (e.g., compiled with -parameters)
+            if (parameter.isNamePresent()) {
+                result.add(new LockKeyParameter(i, parameter.getName()));
+            }
+        }
+        return result;
+    }
+
 }

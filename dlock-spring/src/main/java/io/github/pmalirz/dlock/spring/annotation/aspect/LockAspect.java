@@ -63,6 +63,12 @@ public class LockAspect {
 
         lockKeyValue = replaceKeyParameters(lockKeyValue, joinPoint, parameters);
 
+        // Fallback for reflection-based parameter names (if compiled with -parameters and not using @LockKeyParam)
+        if (parameters.isEmpty()) {
+            parameters = LockAspectsUtil.getReflectionMethodParameters(targetMethod);
+            lockKeyValue = replaceKeyParameters(lockKeyValue, joinPoint, parameters);
+        }
+
         Optional<LockHandle> lock = keyLock.tryLock(lockKeyValue, lockAnnotation.expirationSeconds());
         if (lock.isPresent()) {
             try {

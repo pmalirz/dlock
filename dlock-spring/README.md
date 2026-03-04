@@ -44,7 +44,7 @@ public void generateDailyReport() {
 
 ### Dynamic Keys
 
-Use `@LockKeyParam` to include method arguments in the lock key.
+Use `@LockKeyParam` to include method arguments in the lock key. If `@LockKeyParam` is not provided and you compile with `-parameters` flag, the parameter name will be used directly as the placeholder.
 
 ```java
 @Lock(key = "user-update-{userId}", expirationSeconds = 60)

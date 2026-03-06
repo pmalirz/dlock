@@ -15,7 +15,13 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Lock {
+    /**
+     * The lock key. Must be non-blank and up to 1000 characters.
+     */
     String key();
 
+    /**
+     * The lock expiration time in seconds. Must be greater than 0.
+     */
     long expirationSeconds();
 }

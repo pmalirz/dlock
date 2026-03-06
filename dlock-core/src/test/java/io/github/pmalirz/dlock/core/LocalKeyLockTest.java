@@ -57,6 +57,37 @@ class LocalKeyLockTest {
     }
 
     @Test
+    void tryLockWithInvalidParameters() {
+        // Invalid lockKey
+        Exception e1 = org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            localKeyLock.tryLock(null, 1000);
+        });
+        assertEquals("lockKey must be a non-blank string", e1.getMessage());
+
+        Exception e2 = org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            localKeyLock.tryLock("   ", 1000);
+        });
+        assertEquals("lockKey must be a non-blank string", e2.getMessage());
+
+        String longKey = "a".repeat(1001);
+        Exception e3 = org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            localKeyLock.tryLock(longKey, 1000);
+        });
+        assertEquals("lockKey must be up to 1000 characters", e3.getMessage());
+
+        // Invalid expirationSeconds
+        Exception e4 = org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            localKeyLock.tryLock("valid-key", 0);
+        });
+        assertEquals("expirationSeconds must be greater than 0", e4.getMessage());
+
+        Exception e5 = org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            localKeyLock.tryLock("valid-key", -1);
+        });
+        assertEquals("expirationSeconds must be greater than 0", e5.getMessage());
+    }
+
+    @Test
     void tryLockAndUnlock() {
         Optional<LockHandle> lock1 = localKeyLock.tryLock("a", 1000);
         Optional<LockHandle> lock2 = localKeyLock.tryLock("a", 1000);

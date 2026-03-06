@@ -19,6 +19,8 @@ public interface KeyLock {
      * If the lock is taken by someone there is no exception thrown but simply
      * {@link Optional#empty} is returned.
      *
+     * @throws IllegalArgumentException if lockKey is null/blank or > 1000 characters,
+     *                                  or if expirationSeconds is <= 0.
      * @throws io.github.pmalirz.dlock.api.exception.LockException if an unexpected error occurs
      *                                               during lock acquisition
      */
@@ -32,6 +34,8 @@ public interface KeyLock {
      * @param lockKey           the key identifying the lock
      * @param expirationSeconds the lock expiration time in seconds
      * @param action            the action to execute while holding the lock
+     * @throws IllegalArgumentException if lockKey is null/blank or > 1000 characters,
+     *                                  or if expirationSeconds is <= 0.
      * @throws io.github.pmalirz.dlock.api.exception.LockException if an unexpected error occurs
      *                                               during lock acquisition
      */
@@ -59,6 +63,8 @@ public interface KeyLock {
      * @param <R>               the return type of the action
      * @return an {@link Optional} containing the result of the action if the lock
      *         was acquired, or empty otherwise
+     * @throws IllegalArgumentException if lockKey is null/blank or > 1000 characters,
+     *                                  or if expirationSeconds is <= 0.
      * @throws io.github.pmalirz.dlock.api.exception.LockException if an unexpected error occurs
      *                                               during lock acquisition
      */

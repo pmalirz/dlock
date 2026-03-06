@@ -13,6 +13,8 @@ public interface KeyLock {
     /**
      * Attempts to acquire a lock by key.
      * @return Optional<LockHandle> - Present if acquired, empty if not.
+     * @throws IllegalArgumentException if lockKey is null/blank or > 1000 characters,
+     *                                  or if expirationSeconds is <= 0.
      */
     Optional<LockHandle> tryLock(String lockKey, long expirationSeconds);
 

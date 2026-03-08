@@ -77,7 +77,7 @@ Annotate your methods with `@Lock`.
 **Important**:
 
 * If the lock cannot be acquired (e.g., held by another node), the method execution is **skipped**.
-* For non-primitive return types, `null` (or `Optional.empty()`) is returned. For primitive return types, a `LockException` is thrown.
+* If the method returns `Optional<T>`, `Optional.empty()` is returned. For other non-primitive return types, `null` is returned. For primitive return types (except `void`), a `LockException` is thrown.
 * This pattern is best suited for scheduled tasks or void methods where "skip if running" is the desired behavior.
 * If the method returns a value, the caller must handle `null` or exceptions in case of lock failure.
 

@@ -57,6 +57,46 @@ class LocalKeyLockTest {
     }
 
     @Test
+    void tryLockWithInvalidParameters() {
+        // null key
+        IllegalArgumentException e1 = org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            localKeyLock.tryLock(null, 10);
+        });
+        assertEquals("lockKey must be a non-blank string", e1.getMessage());
+
+        // empty key
+        IllegalArgumentException e2 = org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            localKeyLock.tryLock("", 10);
+        });
+        assertEquals("lockKey must be a non-blank string", e2.getMessage());
+
+        // blank key
+        IllegalArgumentException e3 = org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            localKeyLock.tryLock("   ", 10);
+        });
+        assertEquals("lockKey must be a non-blank string", e3.getMessage());
+
+        // key > 1000 characters
+        String longKey = "a".repeat(1001);
+        IllegalArgumentException e4 = org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            localKeyLock.tryLock(longKey, 10);
+        });
+        assertEquals("lockKey must be up to 1000 characters", e4.getMessage());
+
+        // expiration = 0
+        IllegalArgumentException e5 = org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            localKeyLock.tryLock("key", 0);
+        });
+        assertEquals("expirationSeconds must be greater than 0", e5.getMessage());
+
+        // expiration < 0
+        IllegalArgumentException e6 = org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            localKeyLock.tryLock("key", -1);
+        });
+        assertEquals("expirationSeconds must be greater than 0", e6.getMessage());
+    }
+
+    @Test
     void tryLockAndUnlock() {
         Optional<LockHandle> lock1 = localKeyLock.tryLock("a", 1000);
         Optional<LockHandle> lock2 = localKeyLock.tryLock("a", 1000);

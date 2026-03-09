@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -87,6 +88,19 @@ class LocalKeyLockTest {
 
         Optional<LockHandle> lock3 = localKeyLock.tryLock("b", 1000);
         assertTrue(lock3.isPresent());
+    }
+
+    @Test
+    void testInvalidLockKeyAndExpiration() {
+        assertThrows(IllegalArgumentException.class, () -> localKeyLock.tryLock(null, 10));
+        assertThrows(IllegalArgumentException.class, () -> localKeyLock.tryLock("", 10));
+        assertThrows(IllegalArgumentException.class, () -> localKeyLock.tryLock("   ", 10));
+
+        String longKey = "a".repeat(1001);
+        assertThrows(IllegalArgumentException.class, () -> localKeyLock.tryLock(longKey, 10));
+
+        assertThrows(IllegalArgumentException.class, () -> localKeyLock.tryLock("valid-key", 0));
+        assertThrows(IllegalArgumentException.class, () -> localKeyLock.tryLock("valid-key", -5));
     }
 
     @Test

@@ -36,8 +36,8 @@ public class SimpleKeyLock implements KeyLock {
 
     @Override
     public Optional<LockHandle> tryLock(String lockKey, long expirationSeconds) {
-        if (lockKey == null || lockKey.trim().isEmpty() || lockKey.length() > 1000) {
-            throw new IllegalArgumentException("lockKey must be a non-blank string, up to 1000 characters");
+        if (lockKey == null || lockKey.trim().isEmpty() || lockKey.length() > MAX_LOCK_KEY_LENGTH) {
+            throw new IllegalArgumentException("lockKey must be a non-blank string, up to " + MAX_LOCK_KEY_LENGTH + " characters");
         }
         if (expirationSeconds <= 0) {
             throw new IllegalArgumentException("expirationSeconds must be greater than 0");

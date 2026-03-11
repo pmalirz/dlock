@@ -13,6 +13,8 @@ import java.util.function.Function;
  */
 public interface KeyLock {
 
+    int MAX_LOCK_KEY_LENGTH = 1000;
+
     /**
      * Gets a lock for a given amount of time, if available (providing the handle of
      * that lock).

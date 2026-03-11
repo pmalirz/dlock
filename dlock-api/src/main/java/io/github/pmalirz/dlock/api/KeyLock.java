@@ -13,6 +13,10 @@ import java.util.function.Function;
  */
 public interface KeyLock {
 
+    /**
+     * Maximum allowed length for a lock key.
+     * This limit ensures compatibility with the underlying database schema.
+     */
     int MAX_LOCK_KEY_LENGTH = 1000;
 
     /**

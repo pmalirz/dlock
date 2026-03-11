@@ -25,7 +25,7 @@ public interface KeyLock {
      * If the lock is taken by someone there is no exception thrown but simply
      * {@link Optional#empty} is returned.
      *
-     * @param lockKey           the key identifying the lock (must be non-blank and max 1000 characters)
+     * @param lockKey           the key identifying the lock (must be non-blank and max {@value #MAX_LOCK_KEY_LENGTH} characters)
      * @param expirationSeconds the lock expiration time in seconds (must be greater than 0)
      * @throws io.github.pmalirz.dlock.api.exception.LockException if an unexpected error occurs
      *                                               during lock acquisition

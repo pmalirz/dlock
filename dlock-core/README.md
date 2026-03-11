@@ -4,7 +4,7 @@ This module contains the core implementation logic for **dlock**, independent of
 
 ## Components
 
-* **SimpleKeyLock**: The main implementation of `KeyLock` interface. It orchestrates the locking process using a `LockRepository`. It enforces basic API constraints for `lockKey` (non-blank, max 1000 characters) and `expirationSeconds` (greater than 0) by throwing an `IllegalArgumentException`. The `unlock` method safely handles `null` handles without throwing errors.
+* **SimpleKeyLock**: The main implementation of `KeyLock` interface. It orchestrates the locking process using a `LockRepository`. It enforces basic API constraints for `lockKey` (non-blank, max `KeyLock.MAX_LOCK_KEY_LENGTH` characters) and `expirationSeconds` (greater than 0) by throwing an `IllegalArgumentException`. The `unlock` method safely handles `null` handles without throwing errors.
 * **SimpleLocalKeyLock**: A convenient subclass of `SimpleKeyLock` pre-configured with `LocalLockRepository` (in-memory) and default settings. Useful for testing or single-instance applications.
 * **LockRepository**: Interface for storage backends (e.g., `JDBCLockRepository` implements this).
 * **LockExpirationPolicy**: Strategy for handling lock expiration. Defaults to `LocalLockExpirationPolicy`.

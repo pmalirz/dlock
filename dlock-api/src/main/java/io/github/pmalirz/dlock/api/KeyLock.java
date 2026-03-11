@@ -14,13 +14,22 @@ import java.util.function.Function;
 public interface KeyLock {
 
     /**
+     * Maximum allowed length for a lock key.
+     * This limit ensures compatibility with the underlying database schema.
+     */
+    int MAX_LOCK_KEY_LENGTH = 1000;
+
+    /**
      * Gets a lock for a given amount of time, if available (providing the handle of
      * that lock).
      * If the lock is taken by someone there is no exception thrown but simply
      * {@link Optional#empty} is returned.
      *
+     * @param lockKey           the key identifying the lock (must be non-blank and max {@value #MAX_LOCK_KEY_LENGTH} characters)
+     * @param expirationSeconds the lock expiration time in seconds (must be greater than 0)
      * @throws io.github.pmalirz.dlock.api.exception.LockException if an unexpected error occurs
      *                                               during lock acquisition
+     * @throws IllegalArgumentException if lockKey is invalid or expirationSeconds is <= 0
      */
     Optional<LockHandle> tryLock(String lockKey, long expirationSeconds);
 
@@ -78,7 +87,7 @@ public interface KeyLock {
 
     /**
      * Releases a given lock. If lock with a given handle does not exist nothings
-     * happen.
+     * happen. If the given handle is null, it should safely return.
      */
     void unlock(LockHandle lockHandle);
 

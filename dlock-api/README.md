@@ -12,7 +12,11 @@ The primary interface for simplified lock operations.
 public interface KeyLock {
     /**
      * Attempts to acquire a lock by key.
+     *
+     * @param lockKey           the key identifying the lock (must be non-blank and max {@value #MAX_LOCK_KEY_LENGTH} characters)
+     * @param expirationSeconds the lock expiration time in seconds (must be greater than 0)
      * @return Optional<LockHandle> - Present if acquired, empty if not.
+     * @throws IllegalArgumentException if lockKey is invalid or expirationSeconds is <= 0
      */
     Optional<LockHandle> tryLock(String lockKey, long expirationSeconds);
 
@@ -35,6 +39,7 @@ public interface KeyLock {
 
     /**
      * Releases the lock using the provided handle.
+     * If the lockHandle is null, it safely returns early.
      */
     void unlock(LockHandle lockHandle);
 }

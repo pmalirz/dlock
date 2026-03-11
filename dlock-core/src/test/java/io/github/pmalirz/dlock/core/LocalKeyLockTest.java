@@ -57,6 +57,22 @@ class LocalKeyLockTest {
     }
 
     @Test
+    void shouldThrowExceptionForInvalidLockKeyAndExpiration() {
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> localKeyLock.tryLock(null, 1000));
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> localKeyLock.tryLock("", 1000));
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> localKeyLock.tryLock("   ", 1000));
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> localKeyLock.tryLock("a".repeat(io.github.pmalirz.dlock.api.KeyLock.MAX_LOCK_KEY_LENGTH + 1), 1000));
+
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> localKeyLock.tryLock("a", 0));
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> localKeyLock.tryLock("a", -1));
+    }
+
+    @Test
+    void shouldNotThrowExceptionForNullUnlock() {
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> localKeyLock.unlock(null));
+    }
+
+    @Test
     void tryLockAndUnlock() {
         Optional<LockHandle> lock1 = localKeyLock.tryLock("a", 1000);
         Optional<LockHandle> lock2 = localKeyLock.tryLock("a", 1000);

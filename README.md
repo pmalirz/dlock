@@ -192,7 +192,7 @@ sequenceDiagram
 
 When using the `KeyLock` API, keep the following constraints in mind:
 
-* **`lockKey`** must be a non-blank string, up to `KeyLock.MAX_LOCK_KEY_LENGTH` characters (the database column limit). `SimpleKeyLock.tryLock` enforces this by throwing an `IllegalArgumentException`.
+* **`lockKey`** must be a non-blank string, up to `KeyLock.MAX_LOCK_KEY_LENGTH` (1000) characters (the database column limit). `SimpleKeyLock.tryLock` enforces this by throwing an `IllegalArgumentException`.
 * **`expirationSeconds`** must be greater than 0. `SimpleKeyLock.tryLock` enforces this by throwing an `IllegalArgumentException`.
 * **Lock keys should be descriptive and scoped** (e.g., `"/invoice/{id}"`) to avoid unintended collisions.
 * **`unlock`** operations with a `null` `LockHandle` are safely ignored by `SimpleKeyLock.unlock`.

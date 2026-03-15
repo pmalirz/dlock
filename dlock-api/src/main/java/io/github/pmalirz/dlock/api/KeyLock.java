@@ -38,11 +38,12 @@ public interface KeyLock {
      * The lock is automatically released after the action completes (or throws).
      * If the lock is not available, the action is not executed.
      *
-     * @param lockKey           the key identifying the lock
-     * @param expirationSeconds the lock expiration time in seconds
+     * @param lockKey           the key identifying the lock (must be non-blank and max {@value #MAX_LOCK_KEY_LENGTH} characters)
+     * @param expirationSeconds the lock expiration time in seconds (must be greater than 0)
      * @param action            the action to execute while holding the lock
      * @throws io.github.pmalirz.dlock.api.exception.LockException if an unexpected error occurs
      *                                               during lock acquisition
+     * @throws IllegalArgumentException if lockKey is invalid or expirationSeconds is <= 0
      */
     default void tryLock(String lockKey, long expirationSeconds, Consumer<LockHandle> action) {
         Optional<LockHandle> lock = tryLock(lockKey, expirationSeconds);
@@ -62,14 +63,15 @@ public interface KeyLock {
      * If the lock is not available, the function is not executed and
      * {@link Optional#empty()} is returned.
      *
-     * @param lockKey           the key identifying the lock
-     * @param expirationSeconds the lock expiration time in seconds
+     * @param lockKey           the key identifying the lock (must be non-blank and max {@value #MAX_LOCK_KEY_LENGTH} characters)
+     * @param expirationSeconds the lock expiration time in seconds (must be greater than 0)
      * @param action            the function to execute while holding the lock
      * @param <R>               the return type of the action
      * @return an {@link Optional} containing the result of the action if the lock
      *         was acquired, or empty otherwise
      * @throws io.github.pmalirz.dlock.api.exception.LockException if an unexpected error occurs
      *                                               during lock acquisition
+     * @throws IllegalArgumentException if lockKey is invalid or expirationSeconds is <= 0
      */
     default <R> Optional<R> tryLock(String lockKey, long expirationSeconds, Function<LockHandle, R> action) {
         Optional<LockHandle> lock = tryLock(lockKey, expirationSeconds);
@@ -86,8 +88,8 @@ public interface KeyLock {
     }
 
     /**
-     * Releases a given lock. If lock with a given handle does not exist nothings
-     * happen. If the given handle is null, it should safely return.
+     * Releases a given lock. If lock with a given handle does not exist nothing
+     * happens. If the given handle is null, it should safely return.
      */
     void unlock(LockHandle lockHandle);
 

@@ -23,6 +23,10 @@ public interface KeyLock {
     /**
      * Tries to acquire a lock and, if successful, executes the given action.
      * The lock is automatically released after the action completes.
+     *
+     * @param lockKey           the key identifying the lock (must be non-blank and max {@value #MAX_LOCK_KEY_LENGTH} characters)
+     * @param expirationSeconds the lock expiration time in seconds (must be greater than 0)
+     * @throws IllegalArgumentException if lockKey is invalid or expirationSeconds is <= 0
      */
     default void tryLock(String lockKey, long expirationSeconds, Consumer<LockHandle> action) {
         // ...
@@ -31,7 +35,11 @@ public interface KeyLock {
     /**
      * Tries to acquire a lock and, if successful, executes the given function.
      * The lock is automatically released after the function completes.
+     *
+     * @param lockKey           the key identifying the lock (must be non-blank and max {@value #MAX_LOCK_KEY_LENGTH} characters)
+     * @param expirationSeconds the lock expiration time in seconds (must be greater than 0)
      * @return Optional<R> - Result of the function if lock acquired, empty if not.
+     * @throws IllegalArgumentException if lockKey is invalid or expirationSeconds is <= 0
      */
     default <R> Optional<R> tryLock(String lockKey, long expirationSeconds, Function<LockHandle, R> action) {
         // ...

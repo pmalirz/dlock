@@ -27,7 +27,7 @@ To support other databases, valid SQL scripts must be provided for the `ScriptRe
 | Layer | Mechanism | What It Prevents |
 | :--- | :--- | :--- |
 | 1. **DELETE by handle ID** | Expired locks are removed using their unique `LCK_HNDL_ID` | Cannot accidentally delete another process's newly acquired lock |
-| 2. **Conditional INSERT** | `INSERT...SELECT...WHERE NOT EXISTS (SELECT 1 ... WHERE LCK_KEY = ?)` | Prevents inserting a duplicate lock if another process just acquired it |
+| 2. **Conditional INSERT** | `INSERT...SELECT...WHERE NOT EXISTS` (H2, Oracle) or `ON CONFLICT DO NOTHING` (PostgreSQL) | Prevents inserting a duplicate lock if another process just acquired it |
 | 3. **PRIMARY KEY on `LCK_KEY`** | Database-enforced unique constraint | Ultimate safety net — the database itself rejects any double-insert |
 
 ### Concurrent Expiration Reclaim

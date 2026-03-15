@@ -15,7 +15,15 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Lock {
+    /**
+     * The key identifying the lock.
+     * Must be a non-blank string, up to {@value io.github.pmalirz.dlock.api.KeyLock#MAX_LOCK_KEY_LENGTH} characters.
+     * Can contain parameters referencing method arguments via {@link LockKeyParam}.
+     */
     String key();
 
+    /**
+     * The lock expiration time in seconds. Must be greater than 0.
+     */
     long expirationSeconds();
 }

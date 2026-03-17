@@ -106,6 +106,7 @@ You can also use the API directly without Spring.
 KeyLock keyLock = new JDBCKeyLockBuilder()
         .dataSource(dataSource)
         .databaseType(DatabaseType.H2)
+        .createDatabase(true) // Automatically creates the DLCK table
         .build();
 
 // 2. Try to acquire a lock

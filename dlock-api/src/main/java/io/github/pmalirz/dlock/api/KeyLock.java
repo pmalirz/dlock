@@ -23,7 +23,7 @@ public interface KeyLock {
      * Gets a lock for a given amount of time, if available (providing the handle of
      * that lock).
      * If the lock is taken by someone there is no exception thrown but simply
-     * {@link Optional#empty} is returned.
+     * {@link Optional#empty()} is returned.
      *
      * @param lockKey           the key identifying the lock (must be non-blank and max {@value #MAX_LOCK_KEY_LENGTH} characters)
      * @param expirationSeconds the lock expiration time in seconds (must be greater than 0)
